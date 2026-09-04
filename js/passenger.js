@@ -1,6 +1,7 @@
 /**
  * BusTrack AI - Passenger Hub Logic (Time-Free Initial Search Engine)
  * Displays ALL available buses for the selected route & date, showing Government & Private departures.
+ * Connected to TransportService and AIService layers for future backend readiness.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -61,39 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   /**
-   * Prototype AI ETA Prediction Formula
-   * Technique: Time-Series / Regression-Based ETA Forecasting Simulation
-   * Factors: Distance (km), Speed, Traffic Factor, Historical delay, Peak hour offset
+   * Perform Search for route via TransportService
    */
-  const predictArrival = (bus) => {
-    const currentHour = new Date().getHours();
-    const isPeakHour = (currentHour >= 8 && currentHour <= 10) || (currentHour >= 17 && currentHour <= 20);
-    const trafficMultiplier = isPeakHour ? 1.35 : 1.05;
-    const historicalOffset = bus.crowd === 'High' ? 3 : 1;
-
-    const baseMinutes = ((bus.distanceKm || 5) / (bus.speedKm || 30)) * 60;
-    const predicted = Math.round(baseMinutes * trafficMultiplier + historicalOffset);
-
-    return {
-      predictedMinutes: Math.max(predicted, 2),
-      trafficLevel: isPeakHour ? 'Moderate - Heavy' : 'Smooth Flow',
-      factors: {
-        distance: `${bus.distanceKm || 5} km`,
-        avgSpeed: `${bus.speedKm || 30} km/h`,
-        trafficFactor: `${trafficMultiplier}x (${isPeakHour ? 'Peak Period' : 'Normal'})`,
-        historicalDelay: `+${historicalOffset} mins`,
-        crowdImpact: bus.crowd || 'Medium'
-      }
-    };
-  };
-
-  /**
-   * Perform Search for route
-   */
-  const performSearch = () => {
-    const fromVal = fromSelect.value.trim();
-    const toVal = toSelect.value.trim();
-    currentTravelDate = dateInput.value || '2026-09-10';
+  const performSearch = async () => {
+    const fromVal = fromSelect ? fromSelect.value.trim() : '';
+    const toVal = toSelect ? toSelect.value.trim() : '';
+    currentTravelDate = dateInput?.value || '2026-09-10';
 
     if (resFromTo) {
       resFromTo.textContent = `${fromVal} ➔ ${toVal}`;
@@ -102,7 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
       resTravelDate.textContent = formatDisplayDate(currentTravelDate);
     }
 
-    const allBuses = BusTrackData.getBuses();
+    // Call TransportService layer
+    const allBuses = await TransportService.getBuses();
     const fromLower = fromVal.toLowerCase();
     const toLower = toVal.toLowerCase();
 
@@ -127,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     currentRouteBuses = matched;
     updateResultsStats(currentRouteBuses);
-    renderBuses(currentRouteBuses);
+    await renderBuses(currentRouteBuses);
   };
 
   /**
@@ -152,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /**
    * Render Bus Result Cards
    */
-  const renderBuses = (busesToRender) => {
+  const renderBuses = async (busesToRender) => {
     if (!resultsContainer) return;
     resultsContainer.innerHTML = '';
 
@@ -207,8 +182,15 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    filtered.forEach(bus => {
-      const etaData = predictArrival(bus);
+    for (const bus of filtered) {
+      const etaData = await AIService.predictETA({
+        busId: bus.id,
+        distanceKm: bus.distanceKm || 5,
+        currentSpeed: bus.speedKm || 30,
+        crowd: bus.crowd || 'Medium',
+        routeId: bus.routeId || 'CHE-CBE-01'
+      });
+
       const isGovt = bus.type.toLowerCase() === 'government';
       const badgeClass = isGovt ? 'badge-govt' : 'badge-private';
       const cardClass = isGovt ? 'govt' : 'private';
@@ -265,13 +247,13 @@ document.addEventListener('DOMContentLoaded', () => {
           <div>
             <div style="display: flex; align-items: center; gap: 0.4rem;">
               <span style="font-size: 0.9rem;">🤖</span>
-              <strong style="font-size: 0.85rem; color: #38bdf8;">AI ETA Forecast</strong>
+              <strong style="font-size: 0.85rem; color: #38bdf8;">AI ETA — Prototype Simulation</strong>
             </div>
-            <div style="font-size: 0.725rem; color: var(--text-muted);">${etaData.trafficLevel}</div>
+            <div style="font-size: 0.725rem; color: var(--text-muted);">${etaData.trafficLevel} • Accuracy ${etaData.confidenceScore || '94%'}</div>
           </div>
           <div style="text-align: right;">
             <span style="font-size: 1.2rem; font-weight: 800; color: #22d3ee;">${etaData.predictedMinutes} min</span>
-            <div style="font-size: 0.65rem; color: var(--text-dim);">AI Prototype</div>
+            <div style="font-size: 0.65rem; color: var(--text-dim);">Prototype Simulation</div>
           </div>
         </div>
 
@@ -290,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
 
       resultsContainer.appendChild(card);
-    });
+    }
 
     bindCardDetailModals();
   };
@@ -300,12 +282,18 @@ document.addEventListener('DOMContentLoaded', () => {
    */
   const bindCardDetailModals = () => {
     document.querySelectorAll('.view-details-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const busId = btn.dataset.busId;
         const bus = currentRouteBuses.find(b => b.id === busId);
         if (!bus) return;
 
-        const eta = predictArrival(bus);
+        const eta = await AIService.predictETA({
+          busId: bus.id,
+          distanceKm: bus.distanceKm || 505,
+          currentSpeed: bus.speedKm || 65,
+          crowd: bus.crowd || 'Medium'
+        });
+
         const modalBody = document.getElementById('bus-detail-modal-body');
         const fareAmount = bus.fare || bus.price || (bus.type.toLowerCase() === 'government' ? 320 : 480);
 
@@ -332,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
 
-            <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--secondary);">AI Telematics & Factors</h4>
+            <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--secondary);">AI Telematics & Factors (Simulation)</h4>
             <div class="ai-factor-row">
               <span class="text-muted">Route Distance</span>
               <strong>${bus.distanceKm || 505} km</strong>
@@ -348,6 +336,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="ai-factor-row">
               <span class="text-muted">Crowd Forecast</span>
               <strong style="color: ${bus.crowd === 'High' ? '#f87171' : (bus.crowd === 'Medium' ? '#fbbf24' : '#34d399')};">${bus.crowd || 'Medium'}</strong>
+            </div>
+            <div class="ai-factor-row">
+              <span class="text-muted">Traffic Multiplier</span>
+              <strong>${eta.factors?.trafficFactor || '1.15x'}</strong>
             </div>
             <div class="ai-factor-row">
               <span class="text-muted">Assigned Driver</span>

@@ -1,5 +1,6 @@
 /**
  * BusTrack AI - Passenger Feedback & NLP AI Sentiment Engine
+ * Connected to AIService and TransportService for future ML backend integration.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -49,89 +50,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  /**
-   * Prototype NLP Sentiment & Issue Classification Engine
-   * Technique: Multilingual NLP Sentiment Analysis (Lexicon + Keyword Extraction Rulebase)
-   */
-  const analyzeFeedbackNLP = (text, rating) => {
-    const lower = text.toLowerCase();
-    
-    // Sentiment calculation
-    let sentiment = 'Neutral';
-    if (rating >= 4) sentiment = 'Positive';
-    else if (rating <= 2) sentiment = 'Negative';
-    else {
-      if (lower.includes('good') || lower.includes('great') || lower.includes('clean') || lower.includes('fast') || lower.includes('helpful')) {
-        sentiment = 'Positive';
-      } else if (lower.includes('bad') || lower.includes('late') || lower.includes('crowded') || lower.includes('dirty') || lower.includes('rude') || lower.includes('delay')) {
-        sentiment = 'Negative';
-      }
+  // Populate Buses into dropdown via TransportService
+  const loadBusesDropdown = async () => {
+    if (busSelect) {
+      const buses = await TransportService.getBuses();
+      busSelect.innerHTML = buses.map(b => `<option value="${b.number}">${b.number} (${b.type}) — ${b.routeName}</option>`).join('');
     }
-
-    // Issues detection
-    const issues = [];
-    if (lower.includes('late') || lower.includes('delay') || lower.includes('slow') || lower.includes('waiting')) {
-      issues.push('Schedule Delay');
-    }
-    if (lower.includes('crowd') || lower.includes('rush') || lower.includes('standing') || lower.includes('no seat')) {
-      issues.push('Overcrowding');
-    }
-    if (lower.includes('rude') || lower.includes('rash') || lower.includes('speeding') || lower.includes('behavior')) {
-      issues.push('Driver Behavior');
-    }
-    if (lower.includes('dirty') || lower.includes('clean') && lower.includes('not') || lower.includes('smell')) {
-      issues.push('Cleanliness Defect');
-    }
-    if (lower.includes('fare') || lower.includes('cost') || lower.includes('expensive') || lower.includes('high')) {
-      issues.push('High Fare');
-    }
-    if (lower.includes('ac') && (lower.includes('not') || lower.includes('hot') || lower.includes('warm'))) {
-      issues.push('AC Malfunction');
-    }
-    if (issues.length === 0 && sentiment === 'Negative') {
-      issues.push('General Service Dissatisfaction');
-    } else if (issues.length === 0) {
-      issues.push('None');
-    }
-
-    // Positive factors detection
-    const positives = [];
-    if (lower.includes('on time') || lower.includes('punctual') || lower.includes('fast')) {
-      positives.push('On-Time Arrival');
-    }
-    if (lower.includes('polite') || lower.includes('helpful') || lower.includes('smooth driver') || lower.includes('good driver')) {
-      positives.push('Helpful Driver');
-    }
-    if (lower.includes('clean') && !lower.includes('not')) {
-      positives.push('Clean Bus Interior');
-    }
-    if (lower.includes('ac') && (lower.includes('good') || lower.includes('cool') || lower.includes('chilled'))) {
-      positives.push('Comfortable AC');
-    }
-    if (positives.length === 0 && sentiment === 'Positive') {
-      positives.push('Smooth Overall Experience');
-    } else if (positives.length === 0) {
-      positives.push('None');
-    }
-
-    // Suggested Action
-    let suggestedAction = 'Maintain regular fleet schedule and driver training standards.';
-    if (issues.includes('Overcrowding') || issues.includes('Schedule Delay')) {
-      suggestedAction = 'Increase peak-hour bus dispatch frequency on this corridor and add schedule buffer time.';
-    } else if (issues.includes('Cleanliness Defect')) {
-      suggestedAction = 'Schedule depot sanitization and cleaning review before next morning departure.';
-    } else if (issues.includes('Driver Behavior')) {
-      suggestedAction = 'Assign driver refresher workshop on commuter courtesy and defensive driving.';
-    }
-
-    return { sentiment, issues, positives, suggestedAction };
   };
-
-  // Populate Buses into dropdown
-  if (busSelect) {
-    const buses = BusTrackData.getBuses();
-    busSelect.innerHTML = buses.map(b => `<option value="${b.number}">${b.number} (${b.type}) — ${b.routeName}</option>`).join('');
-  }
+  loadBusesDropdown();
 
   // Render Feedback History
   const renderHistory = () => {
@@ -163,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <p style="font-size:0.85rem; color:#cbd5e1; margin-bottom:0.5rem;">"${item.comment}"</p>
         <div style="font-size:0.75rem; color:var(--text-dim); display:flex; gap:0.5rem; flex-wrap:wrap;">
-          <span>Issues: <strong style="color:#f87171;">${item.issues.join(', ')}</strong></span>
+          <span>Issues: <strong style="color:#f87171;">${(item.issues || []).join(', ') || 'None'}</strong></span>
           <span>•</span>
           <span>Positives: <strong style="color:#4ade80;">${item.positiveFactors ? item.positiveFactors.join(', ') : 'None'}</strong></span>
         </div>
@@ -172,21 +98,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // Live NLP feedback preview on typing
+  // Live NLP feedback preview on typing via AIService
   if (commentInput) {
-    commentInput.addEventListener('input', () => {
+    commentInput.addEventListener('input', async () => {
       const text = commentInput.value.trim();
       if (text.length > 5 && nlpCard) {
         nlpCard.style.display = 'flex';
-        const res = analyzeFeedbackNLP(text, activeRating);
+        const res = await AIService.analyzeFeedback({ text, rating: activeRating });
         
         nlpSentiment.className = `sentiment-meter ${res.sentiment.toLowerCase()}`;
         nlpSentiment.innerHTML = `
           <span>Sentiment: <strong>${res.sentiment}</strong></span>
           <span style="font-size:1.2rem;">${res.sentiment === 'Positive' ? '😊' : (res.sentiment === 'Negative' ? '😞' : '😐')}</span>
         `;
-        nlpIssues.textContent = res.issues.join(', ');
-        nlpPositives.textContent = res.positives.join(', ');
+        nlpIssues.textContent = (res.detectedIssues || []).join(', ');
+        nlpPositives.textContent = (res.positiveFactors || []).join(', ');
         nlpAction.textContent = res.suggestedAction;
       }
     });
@@ -194,10 +120,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Submit Feedback
   if (feedbackForm) {
-    feedbackForm.addEventListener('submit', (e) => {
+    feedbackForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const text = commentInput.value.trim();
-      const bus = busSelect.value;
+      const bus = busSelect ? busSelect.value : 'TNSTC 101';
       const user = AuthManager.getCurrentUser();
 
       if (!text) {
@@ -205,7 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const nlp = analyzeFeedbackNLP(text, activeRating);
+      // Process via AIService
+      const nlp = await AIService.analyzeFeedback({ text, rating: activeRating });
 
       const newFeedback = {
         id: `FB-${Date.now().toString().slice(-4)}`,
@@ -215,15 +142,17 @@ document.addEventListener('DOMContentLoaded', () => {
         rating: activeRating,
         comment: text,
         sentiment: nlp.sentiment,
-        issues: nlp.issues,
-        positiveFactors: nlp.positives
+        issues: nlp.detectedIssues,
+        positiveFactors: nlp.positiveFactors,
+        suggestedAction: nlp.suggestedAction,
+        modelStatus: 'AI Feedback Analysis — Prototype'
       };
 
       const feedbacks = BusTrackData.getFeedback();
       feedbacks.unshift(newFeedback);
       BusTrackData.saveFeedback(feedbacks);
 
-      UI.showToast('⭐ Thank you! AI Sentiment Analysis processed your feedback.', 'success');
+      UI.showToast('⭐ Thank you! AI Sentiment Analysis processed your feedback (Prototype).', 'success');
       commentInput.value = '';
       activeRating = 5;
       updateStars(5);

@@ -1,5 +1,6 @@
 /**
  * BusTrack AI - My Bookings Manager
+ * Connected to BookingService layer for future transactional backend integration.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,19 +10,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const tabButtons = document.querySelectorAll('.booking-tab-btn');
   let currentTab = 'Upcoming'; // 'Upcoming', 'Completed', 'Cancelled'
 
-  const renderBookings = () => {
+  const renderBookings = async () => {
     if (!bookingsList) return;
     bookingsList.innerHTML = '';
 
-    const allBookings = BusTrackData.getBookings();
     const user = AuthManager.getCurrentUser();
+    const allBookings = await BookingService.getUserBookings(user?.username);
     
-    // Filter bookings for current user or all if admin/minister
+    // Filter bookings for current tab
     let filtered = allBookings.filter(b => {
-      if (user && user.role !== 'admin' && user.role !== 'minister') {
-        if (b.username && b.username !== user.username) return false;
-      }
-      return b.status.toLowerCase() === currentTab.toLowerCase();
+      return (b.status || 'Upcoming').toLowerCase() === currentTab.toLowerCase();
     });
 
     if (filtered.length === 0) {
@@ -99,11 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const bindActionButtons = () => {
     // View Ticket
     document.querySelectorAll('.view-ticket-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = btn.dataset.id;
-        const bookings = BusTrackData.getBookings();
-        const booking = bookings.find(b => b.bookingId === id);
-        if (!booking) return;
+        const res = await BookingService.verifyETicket(id);
+        if (!res.valid || !res.booking) return;
+        const booking = res.booking;
 
         const ticketBody = document.getElementById('view-eticket-body');
         if (ticketBody) {
@@ -188,18 +186,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Confirm cancel action
+  // Confirm cancel action via BookingService
   const confirmCancelBtn = document.getElementById('confirm-cancel-booking-btn');
   if (confirmCancelBtn) {
-    confirmCancelBtn.addEventListener('click', () => {
+    confirmCancelBtn.addEventListener('click', async () => {
       const id = confirmCancelBtn.dataset.id;
-      const bookings = BusTrackData.getBookings();
-      const booking = bookings.find(b => b.bookingId === id);
-      if (booking) {
-        booking.status = 'Cancelled';
-        BusTrackData.saveBookings(bookings);
+      const res = await BookingService.cancelBooking(id);
+      if (res.success) {
         UI.closeModal('cancel-booking-confirm-modal');
-        UI.showToast(`Booking ${id} has been cancelled.`, 'warning');
+        UI.showToast(`Booking ${id} has been cancelled (Prototype).`, 'warning');
         renderBookings();
       }
     });

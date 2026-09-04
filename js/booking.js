@@ -395,19 +395,16 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
-    setTimeout(() => {
-      const bookingId = `BTAI-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.floor(100 + Math.random() * 900)}`;
+    setTimeout(async () => {
       const user = AuthManager.getCurrentUser();
       const farePerSeat = currentSelectedBus ? (currentSelectedBus.price || currentSelectedBus.fare || 320) : 320;
       const totalFare = selectedSeats.length * farePerSeat;
 
-      const newBooking = {
-        bookingId,
+      const bookingPayload = {
         username: user?.email || user?.username || 'passenger001',
         passengerName: bookingContact.name,
         email: bookingContact.email,
         mobile: bookingContact.mobile,
-        phone: bookingContact.mobile,
         from: currentSelectedBus.from,
         to: currentSelectedBus.to,
         busNumber: currentSelectedBus.busNumber || currentSelectedBus.number,
@@ -417,19 +414,15 @@ document.addEventListener('DOMContentLoaded', () => {
         departure: currentSelectedBus.departure,
         arrival: currentSelectedBus.arrival || 'On Schedule',
         seats: selectedSeats,
-        passengersCount: selectedSeats.length,
-        fare: totalFare,
-        status: 'Upcoming',
-        bookedAt: new Date().toLocaleString()
+        fare: totalFare
       };
 
-      const bookings = BusTrackData.getBookings();
-      bookings.unshift(newBooking);
-      BusTrackData.saveBookings(bookings);
+      const result = await BookingService.createBooking(bookingPayload);
+      const newBooking = result.booking;
 
       UI.closeModal('payment-modal');
       renderETicket(newBooking);
-      UI.showToast('✅ Payment Successful! Digital E-Ticket Generated.', 'success');
+      UI.showToast('✅ Payment Successful! Digital E-Ticket Generated (Prototype).', 'success');
     }, 1200);
   };
 

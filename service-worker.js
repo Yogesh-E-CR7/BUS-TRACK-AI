@@ -3,7 +3,7 @@
  * Progressive Web App Caching & Offline Support
  */
 
-const CACHE_NAME = 'bustrack-ai-v1.0.2';
+const CACHE_NAME = 'bustrack-ai-v1.1.0';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -32,6 +32,12 @@ const CORE_ASSETS = [
   './css/admin.css',
   './css/minister.css',
   './css/help.css',
+  './js/services/apiConfig.js',
+  './js/services/dbSchema.js',
+  './js/services/transportService.js',
+  './js/services/bookingService.js',
+  './js/services/trackingService.js',
+  './js/services/aiService.js',
   './js/app.js',
   './js/auth.js',
   './js/language.js',

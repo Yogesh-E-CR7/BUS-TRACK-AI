@@ -150,9 +150,9 @@
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                   <span style="font-size: 1.25rem;">🤖</span>
-                  <strong style="color: #38bdf8;">AI NLP Sentiment Analysis</strong>
+                  <strong style="color: #38bdf8;">AI Feedback Analysis — Prototype</strong>
                 </div>
-                <span class="badge badge-simulation">Prototype NLP</span>
+                <span class="badge badge-simulation">Prototype Simulation</span>
               </div>
 
               <div id="nlp-sentiment-val" class="sentiment-meter positive">
@@ -181,12 +181,12 @@
           <div>
             <div class="glass-card">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                <h3 style="font-size: 1.2rem;">Feedback & AI Log</h3>
-                <span class="badge badge-demo">Demo Records</span>
+                <h3 style="font-size: 1.2rem;">Recent Feedback Logs</h3>
+                <span class="badge badge-ai">NLP Tagged</span>
               </div>
 
-              <div id="feedback-history-list">
-                <!-- Populated dynamically -->
+              <div id="feedback-history-list" class="feedback-history-list">
+                <!-- Dynamically populated -->
               </div>
             </div>
           </div>
@@ -220,6 +220,12 @@
   </div>
 
   <!-- Scripts -->
+  <script src="js/services/apiConfig.js"></script>
+  <script src="js/services/dbSchema.js"></script>
+  <script src="js/services/transportService.js"></script>
+  <script src="js/services/bookingService.js"></script>
+  <script src="js/services/trackingService.js"></script>
+  <script src="js/services/aiService.js"></script>
   <script src="js/language.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/app.js"></script>

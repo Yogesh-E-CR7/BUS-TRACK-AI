@@ -1,8 +1,9 @@
 /**
  * BusTrack AI - Live GPS Map & Telematics Simulator
+ * Connected to TrackingService and TransportService for future IoT / GPS stream integration.
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   AuthManager.enforceRoleProtection(['passenger', 'driver', 'admin', 'minister']);
 
   const canvas = document.getElementById('tracking-map-canvas');
@@ -24,21 +25,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const hudCrowd = document.getElementById('hud-crowd');
   const timelineContainer = document.getElementById('route-timeline-container');
 
-  const allBuses = BusTrackData.getBuses();
-
-  // Route Waypoints
-  const STOPS = [
-    { name: 'Gandhipuram Central', x: 0.15, y: 0.25, time: '10:30 AM' },
-    { name: 'Lakshmi Mills Jn.', x: 0.38, y: 0.38, time: '10:38 AM' },
-    { name: 'Nava India Hub', x: 0.58, y: 0.52, time: '10:45 AM' },
-    { name: 'Peelamedu Tech Zone', x: 0.72, y: 0.68, time: '10:52 AM' },
-    { name: 'Singanallur Hub', x: 0.85, y: 0.82, time: '11:00 AM' }
-  ];
+  // Load from service layer
+  const allBuses = await TransportService.getBuses();
+  const STOPS = await TrackingService.getRouteWaypoints('CHE-CBE-01');
 
   let isPlaying = true;
-  let simSpeed = 1; // 1x, 2x, 4x
+  let simSpeed = 1; // 1x, 2x, 5x
   let progress = 0.15; // 0.0 -> 1.0
-  let currentBus = allBuses[0];
+  let currentBus = allBuses[0] || {
+    id: 'TNSTC-101',
+    number: 'TNSTC 101',
+    type: 'Government',
+    routeName: 'Chennai → Coimbatore',
+    from: 'Chennai',
+    to: 'Coimbatore',
+    distanceKm: 505,
+    etaMinutes: 24,
+    status: 'On Time',
+    crowd: 'Medium'
+  };
 
   // Read bus from URL query param if present
   const urlParams = new URLSearchParams(window.location.search);
@@ -77,45 +82,29 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  // Get Interpolated Waypoint along path
+  // Get Interpolated Waypoint along path via TrackingService
   const getPosition = (t) => {
     const rect = canvas.parentElement.getBoundingClientRect();
-    const w = rect.width;
-    const h = rect.height;
-
-    const segCount = STOPS.length - 1;
-    const segIndex = Math.min(Math.floor(t * segCount), segCount - 1);
-    const segT = (t * segCount) - segIndex;
-
-    const p0 = STOPS[segIndex];
-    const p1 = STOPS[segIndex + 1];
-
-    return {
-      x: (p0.x + (p1.x - p0.x) * segT) * w,
-      y: (p0.y + (p1.y - p0.y) * segT) * h,
-      stopIndex: segIndex
-    };
+    return TrackingService.interpolatePosition(STOPS, t, rect.width, rect.height);
   };
 
   const updateHUD = () => {
-    const rect = canvas.parentElement.getBoundingClientRect();
     const pos = getPosition(progress);
     const currentStop = STOPS[pos.stopIndex];
-    const nextStop = STOPS[Math.min(pos.stopIndex + 1, STOPS.length - 1)];
 
-    const remainingDistance = Math.max(0.2, (currentBus.distanceKm * (1 - progress))).toFixed(1);
-    const remainingEta = Math.max(1, Math.round(currentBus.etaMinutes * (1 - progress)));
+    const remainingDistance = Math.max(0.2, ((currentBus.distanceKm || 25) * (1 - progress))).toFixed(1);
+    const remainingEta = Math.max(1, Math.round((currentBus.etaMinutes || 28) * (1 - progress)));
     const currentSpeed = Math.round(30 + Math.sin(progress * 50) * 8);
 
-    if (hudBusNum) hudBusNum.textContent = currentBus.number;
+    if (hudBusNum) hudBusNum.textContent = currentBus.number || currentBus.busNumber;
     if (hudOperator) hudOperator.textContent = `${currentBus.type} Bus • Route ${currentBus.routeId || '101'}`;
     if (hudLocation) hudLocation.textContent = currentStop.name;
     if (hudDestination) hudDestination.textContent = currentBus.to;
     if (hudDistance) hudDistance.textContent = `${remainingDistance} km`;
     if (hudSpeed) hudSpeed.textContent = currentSpeed;
     if (hudEta) hudEta.textContent = `${remainingEta} min`;
-    if (hudStatus) hudStatus.textContent = currentBus.status;
-    if (hudCrowd) hudCrowd.textContent = currentBus.crowd;
+    if (hudStatus) hudStatus.textContent = currentBus.status || 'On Time';
+    if (hudCrowd) hudCrowd.textContent = currentBus.crowd || 'Medium';
 
     // Render Timeline
     if (timelineContainer) {
@@ -244,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ctx.fillStyle = '#38bdf8';
     ctx.font = 'bold 10px Inter, sans-serif';
-    ctx.fillText(currentBus.number, pos.x, pos.y - 24);
+    ctx.fillText(currentBus.number || currentBus.busNumber, pos.x, pos.y - 24);
 
     // Step Simulation
     if (isPlaying) {
