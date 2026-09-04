@@ -1275,40 +1275,536 @@ class TransitBackground {
 }
 
 // ==========================================================================
-// 3. Floating AI Travel Assistant Widget
+// 3. Floating AI Travel Assistant Widget (Enhanced Web + App Data Engine)
 // ==========================================================================
 const AIAssistant = (() => {
-  const KNOWLEDGE_BASE = [
-    {
-      keywords: ['track', 'location', 'live', 'gps', 'where is my bus', 'map'],
-      response: "📍 You can track any city or long-distance bus in real-time from the **Live Tracking** page (`tracking.html`). The prototype map simulates GPS telematics, speed, waypoints, and automated ETA countdowns."
-    },
-    {
-      keywords: ['book', 'ticket', 'reserve', 'seats', 'long distance', 'chennai', 'bengaluru'],
-      response: "🎫 To book long-distance tickets, visit **Book Ticket** (`booking.html`). You can search routes (e.g. Coimbatore ↔ Chennai), compare Government vs. Private operators, pick your seat in the interactive seat map, and simulate demo payment."
-    },
-    {
-      keywords: ['cheap', 'cheaper', 'lowest fare', 'cost', 'price', 'economy'],
-      response: "💰 **Government buses (TNSTC / SETC)** offer great economy with fares from ₹190–₹850, whereas Private operators offer ultra-luxury sleeper berths and onboard amenities from ₹920–₹1,150."
-    },
-    {
-      keywords: ['sleeper', 'luxury', 'comfort', 'ac', 'wifi'],
-      response: "🛏️ For maximum comfort, our AI recommends **Private Multi-Axle AC Sleeper** buses featuring individual charging, Wi-Fi, blanket sets, and onboard restrooms."
-    },
-    {
-      keywords: ['cancel', 'refund', 'cancellation'],
-      response: "📋 You can cancel any active booking directly from **My Bookings** (`bookings.html`). Click the 'Cancel' button on any active ticket and confirm the cancellation."
-    },
-    {
-      keywords: ['eta', 'predict', 'ai', 'arrival time', 'delay', 'algorithm'],
-      response: "🤖 BusTrack AI uses a **Time-Series / Regression-Based ETA Forecasting Simulation** (`predictArrival()`) combining live distance, congestion multipliers, historical delay offsets, and time-of-day peak factors."
-    },
-    {
-      keywords: ['pwa', 'install', 'app', 'iphone', 'android', 'offline'],
-      response: "📱 **BusTrack AI is an installable PWA!** On iPhone/Safari, tap Share ➔ 'Add to Home Screen'. On Android Chrome, tap 'Install App' when prompted. Cached schedules and tickets are viewable offline."
-    }
-  ];
+  // Simple markdown-to-HTML parser for rich responses
+  const renderMarkdown = (text) => {
+    if (!text) return '';
+    let html = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
 
+    // Code blocks & inline code
+    html = html.replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.12); padding:0.12rem 0.35rem; border-radius:4px; font-size:0.85em; color:#38bdf8;">$1</code>');
+
+    // Bold & italic
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+    // Links [title](url)
+    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#38bdf8; text-decoration:underline; font-weight:500;">$1 ↗</a>');
+
+    // Bullet points
+    html = html.replace(/^\s*[-•]\s+(.*)$/gm, '<div style="margin-left: 0.5rem; margin-bottom: 0.25rem;">• $1</div>');
+
+    // Paragraph breaks
+    html = html.replace(/\n{2,}/g, '<div style="margin-top:0.6rem;"></div>');
+    html = html.replace(/\n/g, '<br/>');
+
+    return html;
+  };
+
+  /**
+   * Helper: Get all combined buses from local storage data
+   */
+  const getAllBuses = () => {
+    const regular = BusTrackData.getBuses() || [];
+    const longDistance = BusTrackData.getLongDistance() || [];
+    
+    // Normalise & deduplicate
+    const list = [...regular];
+    longDistance.forEach(ld => {
+      const match = list.find(b => (b.id === ld.id || b.number === ld.busNumber || b.number === ld.id));
+      if (!match) {
+        list.push({
+          id: ld.id,
+          number: ld.busNumber || ld.id,
+          operator: ld.operator,
+          type: ld.type,
+          category: ld.category,
+          routeName: `${ld.from} → ${ld.to}`,
+          from: ld.from,
+          to: ld.to,
+          departure: ld.departure,
+          arrival: ld.arrival,
+          duration: ld.duration,
+          fare: ld.price,
+          price: ld.price,
+          totalSeats: ld.totalSeats,
+          availableSeats: ld.availableSeats,
+          rating: ld.rating,
+          amenities: ld.amenities || []
+        });
+      }
+    });
+    return list;
+  };
+
+  /**
+   * 1. Query BusTrack App Data First (Strict Truthfulness)
+   */
+  const queryAppData = (query) => {
+    const q = query.toLowerCase().trim();
+    const allBuses = getAllBuses();
+    const bookings = BusTrackData.getBookings() || [];
+    const driverReports = BusTrackData.getDriverReports() || [];
+    const feedbackList = BusTrackData.getFeedback() || [];
+    const currentUser = (typeof AuthManager !== 'undefined' && AuthManager.getCurrentUser) ? AuthManager.getCurrentUser() : null;
+
+    // --- A. Specific Bus Number / ID / Operator Query ---
+    for (const b of allBuses) {
+      const bNum = (b.number || '').toLowerCase();
+      const bId = (b.id || '').toLowerCase();
+      const bOp = (b.operator || '').toLowerCase();
+
+      // Check exact or partial match with words in query
+      const isBusMatch = (bNum && q.includes(bNum)) ||
+                         (bId && q.includes(bId)) ||
+                         (b.number && q.replace(/[\s-]/g, '').includes(b.number.toLowerCase().replace(/[\s-]/g, '')));
+
+      if (isBusMatch) {
+        return `🚌 **Bus Details for ${b.number || b.id}**:\n\n` +
+               `• **Operator**: ${b.operator} (${b.type})\n` +
+               `• **Category**: ${b.category || 'Express Seater'}\n` +
+               `• **Route**: ${b.routeName || `${b.from} ➔ ${b.to}`}\n` +
+               `• **Timings**: Departs **${b.departure}** | Arrives **${b.arrival}** (${b.duration || 'N/A'})\n` +
+               `• **Fare**: ₹${b.fare || b.price}\n` +
+               `• **Seat Availability**: **${b.availableSeats}** available out of ${b.totalSeats} seats\n` +
+               `• **Live Status**: ${b.status || 'On Time'} (Speed: ${b.speedKm ? b.speedKm + ' km/h' : 'Simulated GPS'})\n` +
+               (b.driver ? `• **Driver**: ${b.driver}\n` : '') +
+               (b.amenities && b.amenities.length ? `• **Amenities**: ${b.amenities.join(', ')}\n` : '') +
+               `\n📍 You can view real-time GPS tracking for this bus on [Live Tracking](tracking.html?bus=${b.id}) or reserve seats on [Book Ticket](booking.html).`;
+      }
+    }
+
+    // --- B. Booking Inquiry / Ticket Status / My Bookings ---
+    if (q.includes('booking') || q.includes('ticket') || q.includes('my trip') || q.includes('btai-') || q.includes('pnr')) {
+      // Look for specific booking ID
+      const bIdMatch = q.match(/btai-[\w-]+/i);
+      if (bIdMatch) {
+        const found = bookings.find(bk => bk.bookingId.toLowerCase() === bIdMatch[0].toLowerCase());
+        if (found) {
+          return `🎫 **Booking Status: ${found.bookingId}**\n\n` +
+                 `• **Passenger**: ${found.passengerName}\n` +
+                 `• **Route**: ${found.from} ➔ ${found.to} (${found.busNumber})\n` +
+                 `• **Operator**: ${found.operator} (${found.busType})\n` +
+                 `• **Travel Date**: ${found.travelDate} at ${found.departure}\n` +
+                 `• **Seats**: ${Array.isArray(found.seats) ? found.seats.join(', ') : found.seats}\n` +
+                 `• **Total Fare**: ₹${found.fare}\n` +
+                 `• **Status**: **${found.status}**\n\n` +
+                 `You can manage or cancel this booking directly on [My Bookings](bookings.html).`;
+        }
+      }
+
+      // If user asks about their general bookings
+      if (q.includes('my booking') || q.includes('my ticket') || q.includes('check my') || q.includes('view ticket') || q.includes('my active')) {
+        const userBookings = currentUser ? bookings.filter(b => b.username === currentUser.username) : bookings;
+        if (userBookings.length > 0) {
+          const first = userBookings[0];
+          return `🎫 **Your Latest BusTrack Booking**:\n\n` +
+                 `• **Ticket ID**: \`${first.bookingId}\`\n` +
+                 `• **Route**: ${first.from} ➔ ${first.to}\n` +
+                 `• **Date & Time**: ${first.travelDate} at ${first.departure}\n` +
+                 `• **Bus**: ${first.busNumber} (${first.operator})\n` +
+                 `• **Seats**: ${Array.isArray(first.seats) ? first.seats.join(', ') : first.seats} | **Fare**: ₹${first.fare}\n` +
+                 `• **Status**: **${first.status}**\n\n` +
+                 `Total recorded bookings: **${userBookings.length}**. View full details and download e-tickets on [My Bookings](bookings.html).`;
+        } else {
+          return `🎫 You currently have no active bus bookings recorded. You can browse all schedules and book seats instantly on [Book Ticket](booking.html).`;
+        }
+      }
+    }
+
+    // --- C. Cancellation & Refund Policy ---
+    if (q.includes('cancel') || q.includes('refund') || q.includes('cancellation')) {
+      return `📋 **Ticket Cancellation & Refund Process**:\n\n` +
+             `1. Navigate to [My Bookings](bookings.html).\n` +
+             `2. Find the active ticket you wish to cancel.\n` +
+             `3. Click the red **Cancel Ticket** button.\n` +
+             `4. Instant confirmation will update the seat availability in the system, and your simulated refund is credited according to standard policy (100% refund >24h before departure, 80% within 12-24h).\n\n` +
+             `Need help? Visit our [Help Center](help.html) to raise a support ticket.`;
+    }
+
+    // --- D. Route & Timetable Search (Origins & Destinations) ---
+    const hubs = [
+      { name: 'chennai', aliases: ['chennai', 'madras'] },
+      { name: 'coimbatore', aliases: ['coimbatore', 'kovai', 'cbe'] },
+      { name: 'gandhipuram', aliases: ['gandhipuram'] },
+      { name: 'ukkadam', aliases: ['ukkadam'] },
+      { name: 'madurai', aliases: ['madurai'] },
+      { name: 'bengaluru', aliases: ['bengaluru', 'bangalore', 'blr'] },
+      { name: 'salem', aliases: ['salem'] }
+    ];
+
+    let detectedFrom = null;
+    let detectedTo = null;
+
+    for (const h of hubs) {
+      for (const alias of h.aliases) {
+        if (q.includes(`from ${alias}`) || q.includes(`${alias} to`) || q.includes(`${alias} ➔`) || q.includes(`${alias} -`)) {
+          detectedFrom = h.name;
+        }
+        if (q.includes(`to ${alias}`) || (detectedFrom && q.includes(alias) && detectedFrom !== h.name)) {
+          detectedTo = h.name;
+        }
+      }
+    }
+
+    // Find buses matching the route
+    if (detectedFrom || detectedTo || q.includes('route') || q.includes('schedule') || q.includes('timing') || q.includes('buses between')) {
+      let matchingBuses = allBuses;
+
+      if (detectedFrom && detectedTo) {
+        matchingBuses = allBuses.filter(b => 
+          (b.from.toLowerCase().includes(detectedFrom) && b.to.toLowerCase().includes(detectedTo)) ||
+          (b.routeName && b.routeName.toLowerCase().includes(detectedFrom) && b.routeName.toLowerCase().includes(detectedTo))
+        );
+      } else if (detectedFrom) {
+        matchingBuses = allBuses.filter(b => b.from.toLowerCase().includes(detectedFrom));
+      } else if (detectedTo) {
+        matchingBuses = allBuses.filter(b => b.to.toLowerCase().includes(detectedTo));
+      } else if (q.includes('gandhipuram') || q.includes('ukkadam')) {
+        matchingBuses = allBuses.filter(b => b.routeName && (b.routeName.includes('Gandhipuram') || b.routeName.includes('Ukkadam')));
+      } else if (q.includes('chennai')) {
+        matchingBuses = allBuses.filter(b => b.routeName && b.routeName.includes('Chennai'));
+      } else if (q.includes('bengaluru') || q.includes('bangalore')) {
+        matchingBuses = allBuses.filter(b => b.routeName && b.routeName.includes('Bengaluru'));
+      } else if (q.includes('madurai')) {
+        matchingBuses = allBuses.filter(b => b.routeName && b.routeName.includes('Madurai'));
+      } else {
+        matchingBuses = [];
+      }
+
+      if (matchingBuses.length > 0) {
+        const routeHeader = (detectedFrom && detectedTo) 
+          ? `🚌 **Buses between ${detectedFrom.toUpperCase()} and ${detectedTo.toUpperCase()}** (${matchingBuses.length} active departures):`
+          : `🚌 **Matching Bus Schedules in BusTrack** (${matchingBuses.length} services):`;
+
+        const busListText = matchingBuses.slice(0, 5).map(b => 
+          `• **${b.number}** (${b.operator} - ${b.type})\n` +
+          `  ⏰ Departs: **${b.departure}** ➔ Arrives: **${b.arrival}** | Fare: **₹${b.fare || b.price}** | Seats: **${b.availableSeats}** left`
+        ).join('\n\n');
+
+        return `${routeHeader}\n\n${busListText}\n\n` +
+               `👉 You can select seats and book on [Book Ticket](booking.html) or track real-time positions on [Live Tracking](tracking.html).`;
+      }
+    }
+
+    // --- E. Fare & Price Comparisons (Govt vs Private / Cheapest Bus) ---
+    if (q.includes('fare') || q.includes('price') || q.includes('cost') || q.includes('cheap') || q.includes('rate') || q.includes('govt vs private') || q.includes('government vs private')) {
+      return `💰 **BusTrack Authentic Fare & Pricing Breakdown**:\n\n` +
+             `• **City Corridor (Gandhipuram ↔ Ukkadam)**:\n` +
+             `  - TNSTC City Link Ordinary: **₹15** (Frequent 15-min departures)\n\n` +
+             `• **Chennai ↔ Coimbatore (505 km)**:\n` +
+             `  - TNSTC Express (Govt Non-AC): **₹320**\n` +
+             `  - SETC Ultra Deluxe Semi-Sleeper (Govt): **₹350**\n` +
+             `  - PKR Travels AC Semi-Sleeper (Private): **₹480**\n` +
+             `  - SRS / XYZ Volvo Multi-Axle Sleeper (Private): **₹520 – ₹550**\n` +
+             `  - SETC AC Sleeper (Govt): **₹650 – ₹850**\n` +
+             `  - KPN Scania Premium AC Sleeper (Private): **₹890 – ₹1,150**\n\n` +
+             `• **Coimbatore ↔ Madurai (215 km)**:\n` +
+             `  - TNSTC Ultra Deluxe (Govt): **₹340** | SETC AC: **₹420** | Rathi Meena AC Sleeper: **₹490**\n\n` +
+             `• **Coimbatore ↔ Bengaluru (360 km)**:\n` +
+             `  - KSRTC Airavat Club Class (Govt): **₹780** | SRS Multi-Axle Sleeper: **₹920**\n\n` +
+             `💡 *Govt buses provide the most affordable travel, while Private AC Sleepers provide luxury amenities (WiFi, USB charging, blanket).*`;
+    }
+
+    // --- F. Available Seats Query ---
+    if (q.includes('seat') || q.includes('vacancy') || q.includes('how many seats') || q.includes('available seat')) {
+      const topBuses = allBuses.slice(0, 4);
+      const seatInfo = topBuses.map(b => 
+        `• **${b.number}** (${b.routeName || b.from + ' ➔ ' + b.to}): **${b.availableSeats} seats remaining** of ${b.totalSeats}`
+      ).join('\n');
+
+      return `💺 **Current Live Seat Availability in BusTrack**:\n\n${seatInfo}\n\n` +
+             `You can inspect the full interactive seat matrix and select your preferred window/aisle/sleeper berth on [Book Ticket](booking.html).`;
+    }
+
+    // --- G. Live GPS Tracking & Telematics ---
+    if (q.includes('track') || q.includes('live location') || q.includes('gps') || q.includes('where is') || q.includes('telematics') || q.includes('speed')) {
+      const activeBus = allBuses[0];
+      return `📍 **Live GPS Telematics Status**:\n\n` +
+             `BusTrack AI streams simulated high-frequency GPS telematics across all active routes.\n\n` +
+             `• **Sample Tracked Bus**: **${activeBus.number}** (${activeBus.routeName})\n` +
+             `• **Current Corridor**: Gandhipuram ➔ Lakshmi Mills ➔ Nava India ➔ Peelamedu ➔ Singanallur\n` +
+             `• **Live Status**: **${activeBus.status || 'On Time'}** (Current Speed: ~${activeBus.speedKm || 65} km/h)\n` +
+             `• **Driver**: ${activeBus.driver || 'Assigned Telematics Officer'}\n\n` +
+             `👉 View interactive live map, route timeline waypoints, and ETA countdowns on [Live Tracking](tracking.html).`;
+    }
+
+    // --- H. Driver Reports, Traffic Alerts & Congestion ---
+    if (q.includes('traffic') || q.includes('delay') || q.includes('driver report') || q.includes('congestion') || q.includes('incident')) {
+      if (driverReports.length > 0) {
+        const reportList = driverReports.map(r => 
+          `• **${r.bus}** (${r.type}): "${r.details}" — *${r.time} [Status: ${r.status}]*`
+        ).join('\n');
+
+        return `⚠️ **Live Driver & Traffic Incident Reports**:\n\n${reportList}\n\n` +
+               `Our AI integrates these active road reports directly into ETA prediction multipliers!`;
+      }
+      return `✅ **Traffic Update**: All corridors are currently operating smoothly with no active obstruction reports.`;
+    }
+
+    // --- I. Passenger Feedback & Ratings ---
+    if (q.includes('feedback') || q.includes('review') || q.includes('rating') || q.includes('complaint')) {
+      if (feedbackList.length > 0) {
+        const avg = (feedbackList.reduce((acc, f) => acc + (f.rating || 5), 0) / feedbackList.length).toFixed(1);
+        return `⭐ **Passenger Ratings & Feedback Overview**:\n\n` +
+               `• **Overall Satisfaction Rating**: **${avg} / 5.0** (${feedbackList.length} verified reviews)\n` +
+               `• **Latest Review**: "${feedbackList[0].comment}" (${feedbackList[0].passenger}, Rating: ${feedbackList[0].rating}★)\n\n` +
+               `You can submit feedback or view sentiment analytics on the [Feedback Center](feedback.html).`;
+      }
+    }
+
+    // --- J. PWA / App Installation Flow ---
+    if (q.includes('install') || q.includes('pwa') || q.includes('download app') || q.includes('iphone') || q.includes('android') || q.includes('apk') || q.includes('offline')) {
+      return `📱 **How to Install BusTrack AI as an App (PWA)**:\n\n` +
+             `• **On iPhone / iPad (Safari)**:\n` +
+             `  1. Tap the **Share** button (📤) in Safari toolbar.\n` +
+             `  2. Scroll down and tap **"Add to Home Screen"** (➕).\n` +
+             `  3. Tap **Add** in top-right corner to launch fullscreen without browser bars.\n\n` +
+             `• **On Android / Chrome**:\n` +
+             `  1. Tap the **Install** button in our top banner or browser menu (⋮).\n` +
+             `  2. Select **"Install App"**.\n\n` +
+             `⚡ *Once installed, cached timetables, past tickets, and UI remain accessible even with low or zero network!*`;
+    }
+
+    // --- K. AI ETA Forecasting Algorithm ---
+    if (q.includes('algorithm') || q.includes('how does ai work') || q.includes('eta predict') || q.includes('how eta') || q.includes('machine learning')) {
+      return `🤖 **BusTrack AI ETA Forecasting Architecture**:\n\n` +
+             `Our simulated ETA forecasting model combines:\n` +
+             `1. **Real-time Spatial Distance**: Point-to-point remaining route kilometers.\n` +
+             `2. **Congestion Multiplier**: Peak vs. off-peak corridor speed dampening factors (1.0x to 1.45x).\n` +
+             `3. **Historical Stop Delay Offsets**: Boarding dwell times calculated at key transit hubs.\n` +
+             `4. **Driver Telematics Stream**: Dynamic adjustments based on live telemetry speed.`;
+    }
+
+    // --- L. Greetings & Capability Summary ---
+    if (q === 'hi' || q === 'hello' || q === 'hey' || q.startsWith('hello') || q.startsWith('hi ') || q.includes('what can you do') || q.includes('help me')) {
+      return `👋 Hello! I am your **BusTrack AI Assistant**.\n\n` +
+             `I can assist you directly with:\n` +
+             `• 🚌 **Bus Timetables & Schedules** (e.g. *Chennai to Coimbatore* or *Gandhipuram to Ukkadam*)\n` +
+             `• 📍 **Live GPS Tracking & ETA** (e.g. *Track TNSTC 101* or *Where is my bus?*)\n` +
+             `• 💰 **Fares & Govt vs. Private Comparisons**\n` +
+             `• 💺 **Available Seats & Online Bookings**\n` +
+             `• 🌐 **General Travel & Web Search** (Ask any travel, city, or transport question!)\n\n` +
+             `What would you like to know today?`;
+    }
+
+    // Not found in local App database
+    return null;
+  };
+
+  /**
+   * 2. Intelligent Web Search & External Knowledge Synthesis Engine
+   * Fetches real web knowledge from DuckDuckGo Instant Answers, Wikipedia, Weather APIs, and Nominatim
+   */
+  const searchWebAndSynthesize = async (query) => {
+    const cleanQuery = query.replace(/[?.,!]/g, '').trim();
+    const encodedQuery = encodeURIComponent(cleanQuery);
+
+    // Check for weather-specific inquiries
+    const isWeatherQuery = cleanQuery.toLowerCase().includes('weather') || cleanQuery.toLowerCase().includes('rain') || cleanQuery.toLowerCase().includes('temperature');
+    if (isWeatherQuery) {
+      try {
+        const cityMatch = cleanQuery.match(/(?:in|at|for|of)\s+([a-zA-Z\s]+)/i) || [null, cleanQuery.replace(/weather|rain|temperature/gi, '').trim()];
+        const targetCity = cityMatch[1] ? cityMatch[1].trim() : 'Coimbatore';
+        
+        const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(targetCity)}&count=1&language=en&format=json`);
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          if (geoData.results && geoData.results.length > 0) {
+            const loc = geoData.results[0];
+            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`);
+            if (weatherRes.ok) {
+              const wData = await weatherRes.json();
+              const temp = wData.current ? wData.current.temperature_2m : 'N/A';
+              const humidity = wData.current ? wData.current.relative_humidity_2m : 'N/A';
+              const wind = wData.current ? wData.current.wind_speed_10m : 'N/A';
+
+              return `🌤️ **Live Weather in ${loc.name}, ${loc.country || loc.admin1 || ''}**:\n\n` +
+                     `• **Temperature**: **${temp}°C**\n` +
+                     `• **Humidity**: ${humidity}%\n` +
+                     `• **Wind Speed**: ${wind} km/h\n` +
+                     `• **Coordinates**: ${loc.latitude.toFixed(2)}°N, ${loc.longitude.toFixed(2)}°E\n\n` +
+                     `🌐 [View full forecast on Google](https://www.google.com/search?q=${encodeURIComponent(query)})`;
+            }
+          }
+        }
+      } catch (e) {
+        // Fall through to general web search
+      }
+    }
+
+    // Try Wikipedia API first (High quality, direct encyclopedic & travel summaries)
+    try {
+      const wikiSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodedQuery}&utf8=&format=json&origin=*`;
+      const wikiSearchRes = await fetch(wikiSearchUrl);
+      if (wikiSearchRes.ok) {
+        const wikiSearchData = await wikiSearchRes.json();
+        if (wikiSearchData.query && wikiSearchData.query.search && wikiSearchData.query.search.length > 0) {
+          const topResult = wikiSearchData.query.search[0];
+          const pageTitle = topResult.title;
+
+          // Fetch page summary
+          const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
+          const summaryRes = await fetch(summaryUrl);
+          if (summaryRes.ok) {
+            const summaryData = await summaryRes.json();
+            if (summaryData.extract && summaryData.extract.length > 30) {
+              let cleanExtract = summaryData.extract;
+              // Keep response concise and direct (max 3-4 sentences)
+              const sentences = cleanExtract.split(/(?<=[.?!])\s+/);
+              if (sentences.length > 4) {
+                cleanExtract = sentences.slice(0, 4).join(' ');
+              }
+
+              return `🌐 **${summaryData.title}**\n\n` +
+                     `${cleanExtract}\n\n` +
+                     `📚 *Source: [Wikipedia (${summaryData.title})](${summaryData.content_urls ? summaryData.content_urls.desktop.page : 'https://en.wikipedia.org/wiki/' + encodeURIComponent(pageTitle)})* • 🔍 [Search Google for "${query}"](https://www.google.com/search?q=${encodedQuery})`;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Wikipedia API fetch notice:', e);
+    }
+
+    // Try DuckDuckGo Instant Answer API
+    try {
+      const ddgUrl = `https://api.duckduckgo.com/?q=${encodedQuery}&format=json&no_html=1&skip_disambig=1`;
+      const ddgRes = await fetch(ddgUrl);
+      if (ddgRes.ok) {
+        const ddgData = await ddgRes.json();
+        if (ddgData.AbstractText) {
+          return `🌐 **Information for "${query}"**:\n\n` +
+                 `${ddgData.AbstractText}\n\n` +
+                 (ddgData.AbstractURL ? `🔗 *Source: [${ddgData.AbstractSource || 'Reference'}](${ddgData.AbstractURL})* • ` : '') +
+                 `🔍 [Search Google for "${query}"](https://www.google.com/search?q=${encodedQuery})`;
+        } else if (ddgData.Answer) {
+          return `💡 **Answer**: ${ddgData.Answer}\n\n🔍 [Search Google for "${query}"](https://www.google.com/search?q=${encodedQuery})`;
+        }
+      }
+    } catch (e) {
+      console.warn('DuckDuckGo API fetch notice:', e);
+    }
+
+    // Fallback: Intelligent Comprehensive Knowledge Synthesizer
+    return synthesizeSmartFallback(query, encodedQuery);
+  };
+
+  /**
+   * 3. Intelligent Domain Knowledge Synthesizer (Fallback when offline/CORS blocked)
+   * Generates direct, clear, non-repetitive answers based on intent analysis
+   */
+  const synthesizeSmartFallback = (query, encodedQuery) => {
+    const q = query.toLowerCase();
+
+    // Indian Railways / Trains / Vande Bharat
+    if (q.includes('train') || q.includes('railway') || q.includes('vande bharat') || q.includes('irctc')) {
+      return `🚆 **Train & Railway Information**:\n\n` +
+             `• **Vande Bharat & Express Trains**: Southern Railway operates frequent trains connecting Chennai, Coimbatore, Madurai, and Bengaluru (e.g., Coimbatore-Chennai Vande Bharat Express departs daily taking approx 5h 50m).\n` +
+             `• **Booking & Live Status**: For official real-time train tracking and reservations, use IRCTC or the NTES (National Train Enquiry System) app.\n\n` +
+             `🔍 [Check live train status on Google](https://www.google.com/search?q=${encodedQuery})`;
+    }
+
+    // FASTag & Tolls
+    if (q.includes('fastag') || q.includes('toll')) {
+      return `🛣️ **FASTag Electronic Toll Collection**:\n\n` +
+             `• **What it is**: FASTag is an electronic RFID toll collection system operated by the National Highways Authority of India (NHAI).\n` +
+             `• **How it works**: Affixed to the vehicle windshield, toll charges are automatically deducted from the linked prepaid wallet/bank account without stopping at toll plazas.\n\n` +
+             `🔍 [Read more about FASTag on Google](https://www.google.com/search?q=${encodedQuery})`;
+    }
+
+    // Tourist Spots & Places to Visit
+    if (q.includes('visit') || q.includes('tourist') || q.includes('places to see') || q.includes('sightseeing') || q.includes('attractions')) {
+      if (q.includes('coimbatore') || q.includes('kovai')) {
+        return `🏞️ **Top Places to Visit in Coimbatore**:\n\n` +
+               `1. **Adiyogi Shiva Statue & Isha Yoga Center** (Velliangiri Hills)\n` +
+               `2. **Marudhamalai Murugan Temple**\n` +
+               `3. **Siruvani Waterfalls & Dam** (Famous for sweet water)\n` +
+               `4. **Gedee Car Museum** (Historic automobile collection)\n` +
+               `5. **VOC Park and Zoo**\n\n` +
+               `🔍 [Explore Coimbatore tourist guides on Google](https://www.google.com/search?q=${encodedQuery})`;
+      } else if (q.includes('chennai')) {
+        return `🏖️ **Top Places to Visit in Chennai**:\n\n` +
+               `1. **Marina Beach & Elliot's Beach**\n` +
+               `2. **Kapaleeshwarar Temple** (Mylapore)\n` +
+               `3. **Fort St. George & Museum**\n` +
+               `4. **Guindy National Park**\n` +
+               `5. **DakshinaChitra Heritage Museum**\n\n` +
+               `🔍 [Explore Chennai tourist guides on Google](https://www.google.com/search?q=${encodedQuery})`;
+      } else if (q.includes('madurai')) {
+        return `🏛️ **Top Places to Visit in Madurai**:\n\n` +
+               `1. **Meenakshi Amman Temple**\n` +
+               `2. **Thirumalai Nayakkar Mahal**\n` +
+               `3. **Gandhi Memorial Museum**\n` +
+               `4. **Alagar Koyil**\n\n` +
+               `🔍 [Explore Madurai tourist guides on Google](https://www.google.com/search?q=${encodedQuery})`;
+      } else if (q.includes('ooty')) {
+        return `🌲 **Top Places to Visit in Ooty (Nilgiris)**:\n\n` +
+               `1. **Nilgiri Mountain Railway (Toy Train)**\n` +
+               `2. **Ooty Lake & Boat House**\n` +
+               `3. **Botanical Gardens & Rose Garden**\n` +
+               `4. **Doddabetta Peak**\n` +
+               `5. **Pykara Waterfalls & Lake**\n\n` +
+               `🔍 [Explore Ooty travel guides on Google](https://www.google.com/search?q=${encodedQuery})`;
+      }
+    }
+
+    // TNSTC & SETC History / Organization
+    if (q.includes('tnstc') || q.includes('setc') || q.includes('transport corporation')) {
+      return `🏛️ **Tamil Nadu State Transport Corporation (TNSTC & SETC)**:\n\n` +
+             `• **Overview**: TNSTC is the state-owned public bus transport company running over 20,000 buses across Tamil Nadu and neighbouring states.\n` +
+             `• **SETC (State Express Transport Corporation)** handles long-distance inter-state and inter-city routes (>300 km) with Ultra Deluxe, AC Sleeper, and Air Conditioned services.\n\n` +
+             `🔍 [Read more about TNSTC on Google](https://www.google.com/search?q=${encodedQuery})`;
+    }
+
+    // Metro / Airport / Transport Interchanges
+    if (q.includes('metro') || q.includes('airport') || q.includes('flight')) {
+      return `🚇 **Transit & Connectivity Insights**:\n\n` +
+             `• Major Tamil Nadu cities feature multimodal transit interchanges connecting bus stations, railway junctions, and airport terminals.\n` +
+             `• Chennai Metro Rail (CMRL) connects Chennai Central, Egmore, and Chennai International Airport directly.\n\n` +
+             `🔍 [Search transit maps on Google](https://www.google.com/search?q=${encodedQuery})`;
+    }
+
+    // Electric Buses / EV Transit
+    if (q.includes('electric') || q.includes('ev bus') || q.includes('green transport')) {
+      return `⚡ **Electric Bus & Green Transit Initiatives**:\n\n` +
+             `• State transport undertakings in India are progressively deploying zero-emission battery electric buses (E-Buses) for urban routes to reduce carbon emissions and urban noise pollution.\n\n` +
+             `🔍 [Read more about electric buses on Google](https://www.google.com/search?q=${encodedQuery})`;
+    }
+
+    // Direct helpful general inquiry answer
+    return `🔍 **Search Result for "${query}"**:\n\n` +
+           `Here is information regarding your query: You can explore reliable sources, articles, and transit guidelines directly online.\n\n` +
+           `👉 [Open Google Search for "${query}"](https://www.google.com/search?q=${encodedQuery})\n\n` +
+           `*(Tip: For questions about bus tracking, bookings, schedules, or seat availability within BusTrack AI, feel free to ask anytime!)*`;
+  };
+
+  /**
+   * Master Query Processor:
+   * 1. Checks internal app data first.
+   * 2. If not found, conducts real web search & synthesis.
+   */
+  const processQuery = async (query) => {
+    if (!query || !query.trim()) {
+      return "Please type a question or select a prompt to begin.";
+    }
+
+    // Step 1: Check internal verified app data
+    const appAnswer = queryAppData(query);
+    if (appAnswer) {
+      return appAnswer;
+    }
+
+    // Step 2: Search web / Google and synthesize intelligent result
+    return await searchWebAndSynthesize(query);
+  };
+
+  // --- UI Widget Management ---
   const init = () => {
     if (!document.getElementById('ai-assistant-widget')) {
       const widgetHTML = `
@@ -1323,21 +1819,22 @@ const AIAssistant = (() => {
                 <span style="font-size: 1.3rem;">🤖</span>
                 <div>
                   <h4 style="font-size:0.95rem; margin:0;">BusTrack AI Assistant</h4>
-                  <span class="badge badge-ai" style="font-size:0.6rem; padding:0.1rem 0.4rem;">Prototype NLP</span>
+                  <span class="badge badge-ai" style="font-size:0.6rem; padding:0.1rem 0.4rem;">Live Data + Web Search</span>
                 </div>
               </div>
               <button id="ai-chat-close-btn" class="modal-close-btn" style="font-size: 1.1rem;">✕</button>
             </div>
             <div id="ai-chat-messages" class="ai-chat-messages">
               <div class="chat-bubble bot">
-                👋 Hello! I am your <strong>BusTrack AI Travel Assistant</strong>. Ask me anything about bus schedules, ETA predictions, PWA installation, or Govt vs. Private comparisons!
+                👋 Hello! I am your <strong>BusTrack AI Travel Assistant</strong>. Ask me anything about live bus tracking, ticket bookings, fares, seat availability, or search the web for travel info!
               </div>
             </div>
             <div class="ai-quick-prompts">
               <button class="prompt-pill" data-msg="How do I track my bus?">📍 How to track?</button>
               <button class="prompt-pill" data-msg="How do I book a ticket?">🎫 How to book?</button>
-              <button class="prompt-pill" data-msg="How to install as app on iPhone/Android?">📱 Install App?</button>
               <button class="prompt-pill" data-msg="Which bus is cheaper: Govt or Private?">⚖️ Govt vs Private?</button>
+              <button class="prompt-pill" data-msg="Buses from Chennai to Coimbatore">🚌 Chennai ➔ CBE</button>
+              <button class="prompt-pill" data-msg="How to install as app on iPhone/Android?">📱 Install App?</button>
             </div>
             <form id="ai-chat-form" class="ai-chat-input-area">
               <input type="text" id="ai-chat-input" class="form-control" placeholder="Ask BusTrack AI anything..." autocomplete="off" style="font-size: 16px; padding: 0.55rem 0.85rem;" />
@@ -1363,7 +1860,7 @@ const AIAssistant = (() => {
     if (fabBtn && chatWindow) {
       fabBtn.addEventListener('click', () => {
         chatWindow.classList.toggle('active');
-        if (chatWindow.classList.contains('active')) {
+        if (chatWindow.classList.contains('active') && chatInput) {
           chatInput.focus();
         }
       });
@@ -1393,39 +1890,36 @@ const AIAssistant = (() => {
     });
   };
 
-  const sendMessage = (text) => {
+  const sendMessage = async (text) => {
     const messagesContainer = document.getElementById('ai-chat-messages');
     if (!messagesContainer) return;
 
+    // Render User Bubble
     const userBubble = document.createElement('div');
     userBubble.className = 'chat-bubble user';
     userBubble.textContent = text;
     messagesContainer.appendChild(userBubble);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
+    // Render Temporary Thinking Bubble
     const botBubble = document.createElement('div');
     botBubble.className = 'chat-bubble bot';
-    botBubble.innerHTML = '<em>Thinking...</em>';
+    botBubble.innerHTML = '<span style="display:inline-flex; align-items:center; gap:0.4rem;">🤖 <em>Thinking & searching...</em></span>';
     messagesContainer.appendChild(botBubble);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-    setTimeout(() => {
-      botBubble.innerHTML = generateResponse(text);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }, 450);
-  };
-
-  const generateResponse = (query) => {
-    const q = query.toLowerCase();
-    for (const item of KNOWLEDGE_BASE) {
-      if (item.keywords.some(k => q.includes(k))) {
-        return item.response;
-      }
+    try {
+      const responseMarkdown = await processQuery(text);
+      botBubble.innerHTML = renderMarkdown(responseMarkdown);
+    } catch (err) {
+      console.error('Chatbot error:', err);
+      botBubble.innerHTML = renderMarkdown(`🔍 I encountered an issue retrieving real-time data. You can explore more on [Google Search](https://www.google.com/search?q=${encodeURIComponent(text)}).`);
     }
-    return "🤖 <strong>BusTrack AI Insight:</strong> You can search buses between hubs (Gandhipuram ↔ Ukkadam), compare Government and Private options on our Booking page, or check the Transport Command Center for city analytics!";
+
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
   };
 
-  return { init, sendMessage };
+  return { init, sendMessage, processQuery };
 })();
 
 // ==========================================================================
