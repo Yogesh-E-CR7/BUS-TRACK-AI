@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Book Long-Distance Ticket — BusTrack AI</title>
+  <meta name="theme-color" content="#07111F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BusTrack AI" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/booking.css" />
+</head>
+<body>
+  <canvas id="transit-bg-canvas"></canvas>
+  <div class="bg-grid-overlay"></div>
+  <div class="bg-gradient-glow"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-logo-icon">🚌</span>
+        <div>
+          <div class="sidebar-logo-text">BusTrack <span class="gradient-text-cyan">AI</span></div>
+          <span class="sidebar-role-badge">Booking Desk</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="passenger.html" class="sidebar-link">
+          <span class="nav-icon">🏠</span>
+          <span data-i18n="dashboard">Dashboard</span>
+        </a>
+        <a href="passenger.html" class="sidebar-link">
+          <span class="nav-icon">🔍</span>
+          <span data-i18n="findBus">Find Bus</span>
+        </a>
+        <a href="booking.html" class="sidebar-link active">
+          <span class="nav-icon">🎫</span>
+          <span data-i18n="bookTicket">Book Ticket</span>
+        </a>
+        <a href="bookings.html" class="sidebar-link">
+          <span class="nav-icon">📋</span>
+          <span data-i18n="myBookings">My Bookings</span>
+        </a>
+        <a href="tracking.html" class="sidebar-link">
+          <span class="nav-icon">📍</span>
+          <span data-i18n="liveTracking">Live Tracking</span>
+        </a>
+        <a href="feedback.html" class="sidebar-link">
+          <span class="nav-icon">⭐</span>
+          <span data-i18n="feedback">Feedback</span>
+        </a>
+        <a href="help.html" class="sidebar-link">
+          <span class="nav-icon">🆘</span>
+          <span data-i18n="helpCenter">Help Center</span>
+        </a>
+        <a href="profile.html" class="sidebar-link">
+          <span class="nav-icon">👤</span>
+          <span data-i18n="profile">Profile</span>
+        </a>
+        <a href="settings.html" class="sidebar-link">
+          <span class="nav-icon">⚙️</span>
+          <span data-i18n="settings">Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button type="button" class="btn btn-outline btn-sm logout-btn" style="width: 100%;">
+          🚪 <span data-i18n="logout">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <header class="app-header">
+        <div class="header-left">
+          <button id="menu-toggle-btn" class="menu-toggle-btn" aria-label="Toggle Menu">☰</button>
+          <div class="header-title">
+            <span>Intercity Ticket Booking</span>
+            <span class="badge badge-demo" style="margin-left: 0.5rem; display:none; @media(min-width:600px){display:inline-flex;}">Demo</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <select class="form-control language-selector-select" onchange="LanguageManager.setLanguage(this.value)" style="width: auto; min-height: 36px; padding: 0.25rem 1.75rem 0.25rem 0.5rem; font-size: 0.8rem;">
+            <option value="en">English</option>
+            <option value="ta">தமிழ்</option>
+            <option value="hi">हिन्दी</option>
+            <option value="te">తెలుగు</option>
+            <option value="kn">ಕನ್ನಡ</option>
+            <option value="ml">മലയാളം</option>
+          </select>
+
+          <a href="profile.html" class="user-profile-btn">
+            <div class="avatar">P</div>
+            <span class="current-user-name" style="font-size: 0.85rem; font-weight: 600;">Priya Sharma</span>
+          </a>
+        </div>
+      </header>
+
+      <main class="page-body">
+        <!-- Search Hero Section -->
+        <section class="booking-hero-card">
+          <div style="margin-bottom: 1.25rem;">
+            <div class="badge badge-ai" style="margin-bottom: 0.5rem;">Smart Booking Engine</div>
+            <h2 style="font-size: 1.6rem;">🎫 Plan Your Long-Distance Journey</h2>
+            <p class="text-muted text-sm">Compare Government (SETC/TNSTC) and Private Luxury Sleeper buses with AI value recommendations.</p>
+          </div>
+
+          <form id="ld-search-form" class="search-form-grid">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="ld-from">From</label>
+              <select id="ld-from" class="form-control form-select">
+                <option value="Coimbatore" selected>Coimbatore</option>
+                <option value="Chennai">Chennai</option>
+                <option value="Madurai">Madurai</option>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Salem">Salem</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="ld-to">To</label>
+              <select id="ld-to" class="form-control form-select">
+                <option value="Chennai" selected>Chennai</option>
+                <option value="Coimbatore">Coimbatore</option>
+                <option value="Madurai">Madurai</option>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Salem">Salem</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="ld-date">Travel Date</label>
+              <input type="date" id="ld-date" class="form-control" value="2026-09-15" />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="ld-passengers">Passengers</label>
+              <input type="number" id="ld-passengers" class="form-control" value="2" min="1" max="6" />
+            </div>
+
+            <div>
+              <button type="submit" class="btn btn-primary" style="width: 100%;">
+                🔍 Search Buses
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- AI Travel Recommendations -->
+        <div class="ai-recommendation-bar">
+          <div class="ai-rec-card">
+            <div class="ai-rec-tag">🤖 Best Value • AI Prototype</div>
+            <h4 style="color:#fff;">SETC Express (Government)</h4>
+            <p class="text-muted text-sm">Lower fare of ₹850 with suitable overnight travel duration (9h 30m).</p>
+          </div>
+          <div class="ai-rec-card">
+            <div class="ai-rec-tag">🤖 Best Comfort • AI Prototype</div>
+            <h4 style="color:#fff;">KPN Multi-Axle AC Sleeper</h4>
+            <p class="text-muted text-sm">Highest passenger rating (4.7★) with premium amenities & restroom.</p>
+          </div>
+        </div>
+
+        <!-- Filter Bar & Comparison Button -->
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem; margin-bottom:1.5rem;">
+          <div class="filter-pills-bar" style="margin-bottom:0;">
+            <button type="button" class="filter-pill ld-filter-pill active" data-filter="all">All</button>
+            <button type="button" class="filter-pill ld-filter-pill" data-filter="Government">Government</button>
+            <button type="button" class="filter-pill ld-filter-pill" data-filter="Private">Private Luxury</button>
+          </div>
+          <button type="button" id="open-compare-btn" class="btn btn-outline btn-sm">
+            ⚖️ Compare Bus Options
+          </button>
+        </div>
+
+        <!-- Bus List Container -->
+        <div id="ld-buses-container">
+          <!-- Rendered dynamically by js/booking.js -->
+        </div>
+      </main>
+
+      <!-- Mobile Bottom Navigation Bar -->
+      <nav class="mobile-bottom-nav">
+        <a href="passenger.html" class="bottom-nav-item">
+          <span class="nav-icon">🏠</span>
+          <span>Home</span>
+        </a>
+        <a href="booking.html" class="bottom-nav-item active">
+          <span class="nav-icon">🎫</span>
+          <span>Book</span>
+        </a>
+        <a href="tracking.html" class="bottom-nav-item">
+          <span class="nav-icon">📍</span>
+          <span>Track</span>
+        </a>
+        <a href="bookings.html" class="bottom-nav-item">
+          <span class="nav-icon">📋</span>
+          <span>Trips</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-item">
+          <span class="nav-icon">👤</span>
+          <span>Profile</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- 1. Seat Selection Modal -->
+  <div id="seat-selection-modal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 id="seat-modal-title" class="modal-title">Select Your Seats</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="seat-modal-bus-info" class="glass-card" style="background:rgba(7,17,31,0.6); margin-bottom:1rem; padding:0.85rem;"></div>
+
+        <div class="bus-seat-layout-container">
+          <div class="bus-cabin-frame">
+            <div class="driver-steering">
+              <span class="steering-icon">☸️ DRIVER</span>
+            </div>
+            <div id="interactive-seat-grid" class="seat-grid">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <div class="seat-legend-bar">
+          <div><span class="legend-dot" style="background:#4ade80;"></span> Available</div>
+          <div><span class="legend-dot" style="background:#38bdf8;"></span> Selected</div>
+          <div><span class="legend-dot" style="background:#64748b;"></span> Reserved</div>
+        </div>
+
+        <div id="seat-selection-summary" style="margin-top:1.25rem; display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-glass); padding-top:1rem; flex-wrap:wrap; gap:0.5rem;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" data-modal-close>Cancel</button>
+        <button type="button" id="proceed-passenger-details-btn" class="btn btn-primary btn-sm" disabled>
+          Continue to Passenger Details →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Passenger Details Modal -->
+  <div id="passenger-details-modal" class="modal-backdrop">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Passenger Information</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="passenger-details-form">
+        <div id="passenger-form-rows" class="modal-body">
+          <!-- Populated dynamically per selected seat -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" data-modal-close>Back</button>
+          <button type="submit" class="btn btn-primary btn-sm">Proceed to Payment →</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Demo Payment Modal -->
+  <div id="payment-modal" class="modal-backdrop">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">🔐 Secure Demo Payment</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="demo-payment-form">
+        <div class="modal-body">
+          <div id="payment-booking-summary"></div>
+
+          <h4 style="font-size:0.95rem; margin-bottom:0.75rem; color:var(--secondary);">Select Payment Method (Simulation)</h4>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:0.75rem; margin-bottom:1.5rem;">
+            <label class="glass-card" style="cursor:pointer; display:flex; align-items:center; gap:0.5rem; padding:0.75rem;">
+              <input type="radio" name="pay-method" value="upi" checked />
+              <span style="font-size:0.85rem;">📱 UPI</span>
+            </label>
+            <label class="glass-card" style="cursor:pointer; display:flex; align-items:center; gap:0.5rem; padding:0.75rem;">
+              <input type="radio" name="pay-method" value="card" />
+              <span style="font-size:0.85rem;">💳 Card</span>
+            </label>
+            <label class="glass-card" style="cursor:pointer; display:flex; align-items:center; gap:0.5rem; padding:0.75rem;">
+              <input type="radio" name="pay-method" value="netbanking" />
+              <span style="font-size:0.85rem;">🏦 Banking</span>
+            </label>
+            <label class="glass-card" style="cursor:pointer; display:flex; align-items:center; gap:0.5rem; padding:0.75rem;">
+              <input type="radio" name="pay-method" value="wallet" />
+              <span style="font-size:0.85rem;">👛 Wallet</span>
+            </label>
+          </div>
+
+          <div id="payment-processing-status" style="display:none; margin-bottom:1rem; text-align:center;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" data-modal-close>Cancel</button>
+          <button type="submit" id="demo-pay-btn" class="btn btn-secondary">
+            Pay Now
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Digital E-Ticket Modal -->
+  <div id="eticket-modal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🎫 Digital E-Ticket Confirmation</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div id="eticket-modal-body" class="modal-body">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="modal-footer" style="justify-content:space-between; gap:0.75rem;">
+        <a href="bookings.html" class="btn btn-outline btn-sm">View in My Bookings</a>
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" id="print-ticket-btn" class="btn btn-secondary btn-sm">
+            🖨️ Print Ticket
+          </button>
+          <a href="passenger.html" class="btn btn-primary btn-sm">Done</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Comparison Modal -->
+  <div id="compare-modal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 class="modal-title">⚖️ Government vs. Private Bus Comparison</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div id="compare-modal-body" class="modal-body">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" data-modal-close>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/language.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/booking.js"></script>
+</body>
+</html>

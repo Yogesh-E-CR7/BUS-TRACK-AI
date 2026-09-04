@@ -1,0 +1,96 @@
+/* ==========================================================================
+   BusTrack AI - Transport Minister Command Center Styles
+   ========================================================================== */
+
+.minister-hero-banner {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9));
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+}
+
+.minister-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.minister-kpi-card {
+  background: var(--bg-card);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  transition: var(--transition);
+}
+
+.minister-kpi-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Regional Transport Interactive Map Container */
+.regional-map-card {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--border-glass-glow);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.regional-map-canvas-box {
+  width: 100%;
+  height: 380px;
+  position: relative;
+  background: radial-gradient(circle at center, #0f172a 0%, #030812 100%);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-glass);
+}
+
+#regional-map-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: pointer;
+}
+
+.region-detail-overlay {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-glass-glow);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  max-width: 320px;
+  box-shadow: var(--shadow-lg);
+  transition: var(--transition);
+}
+
+/* C29 Student Field Observation Box */
+.c29-observation-box {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px dashed rgba(245, 158, 11, 0.5);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.field-data-input {
+  background: rgba(7, 17, 31, 0.7);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  color: #fbbf24;
+  font-weight: 600;
+  width: 100%;
+}

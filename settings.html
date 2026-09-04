@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Settings — BusTrack AI</title>
+  <meta name="theme-color" content="#07111F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BusTrack AI" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+</head>
+<body>
+  <canvas id="transit-bg-canvas"></canvas>
+  <div class="bg-grid-overlay"></div>
+  <div class="bg-gradient-glow"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-logo-icon">🚌</span>
+        <div>
+          <div class="sidebar-logo-text">BusTrack <span class="gradient-text-cyan">AI</span></div>
+          <span class="sidebar-role-badge">System Settings</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="passenger.html" class="sidebar-link">
+          <span class="nav-icon">🏠</span>
+          <span data-i18n="dashboard">Dashboard</span>
+        </a>
+        <a href="booking.html" class="sidebar-link">
+          <span class="nav-icon">🎫</span>
+          <span data-i18n="bookTicket">Book Ticket</span>
+        </a>
+        <a href="bookings.html" class="sidebar-link">
+          <span class="nav-icon">📋</span>
+          <span data-i18n="myBookings">My Bookings</span>
+        </a>
+        <a href="tracking.html" class="sidebar-link">
+          <span class="nav-icon">📍</span>
+          <span data-i18n="liveTracking">Live Tracking</span>
+        </a>
+        <a href="feedback.html" class="sidebar-link">
+          <span class="nav-icon">⭐</span>
+          <span data-i18n="feedback">Feedback</span>
+        </a>
+        <a href="help.html" class="sidebar-link">
+          <span class="nav-icon">🆘</span>
+          <span data-i18n="helpCenter">Help Center</span>
+        </a>
+        <a href="profile.html" class="sidebar-link">
+          <span class="nav-icon">👤</span>
+          <span data-i18n="profile">Profile</span>
+        </a>
+        <a href="settings.html" class="sidebar-link active">
+          <span class="nav-icon">⚙️</span>
+          <span data-i18n="settings">Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button type="button" class="btn btn-outline btn-sm logout-btn" style="width: 100%;">
+          🚪 <span data-i18n="logout">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="app-header">
+        <div class="header-left">
+          <button id="menu-toggle-btn" class="menu-toggle-btn" aria-label="Toggle Menu">☰</button>
+          <div class="header-title">
+            <span data-i18n="settings">Platform Preferences</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <a href="profile.html" class="user-profile-btn">
+            <div class="avatar">P</div>
+            <span class="current-user-name" style="font-size: 0.85rem; font-weight: 600;">Passenger</span>
+          </a>
+        </div>
+      </header>
+
+      <main class="page-body" style="max-width: 850px;">
+        <div style="margin-bottom: 2rem;">
+          <h2 style="font-size: 1.5rem;">App & Accessibility Settings</h2>
+          <p class="text-muted text-sm">Customize language, animations, theme, and PWA simulation parameters.</p>
+        </div>
+
+        <!-- Language Preference -->
+        <div class="glass-card" style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">🌐 Preferred Language</h3>
+          <p class="text-muted text-sm" style="margin-bottom: 1rem;">Choose your comfortable language for all navigation and AI features.</p>
+          <div style="max-width: 320px;">
+            <select class="form-control form-select" id="settings-lang-select" onchange="LanguageManager.setLanguage(this.value)">
+              <option value="en">English (English)</option>
+              <option value="ta">தமிழ் (Tamil)</option>
+              <option value="hi">हिन्दी (Hindi)</option>
+              <option value="te">తెలుగు (Telugu)</option>
+              <option value="kn">ಕನ್ನಡ (Kannada)</option>
+              <option value="ml">മലയാളം (Malayalam)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Accessibility & Motion -->
+        <div class="glass-card" style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">✨ Motion & Visual Effects</h3>
+          <p class="text-muted text-sm" style="margin-bottom: 1rem;">Configure the animated smart transit background canvas.</p>
+          
+          <label style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--border-glass); cursor: pointer;">
+            <div>
+              <strong>Animated Transit Background</strong>
+              <div class="text-muted text-xs">Enable glowing transit lines and GPS pulses</div>
+            </div>
+            <input type="checkbox" id="toggle-animated-bg" checked style="width: 20px; height: 20px; accent-color: var(--secondary);" />
+          </label>
+
+          <label style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; cursor: pointer;">
+            <div>
+              <strong>High-Contrast Color Mode</strong>
+              <div class="text-muted text-xs">Increase contrast on maps and timetable data</div>
+            </div>
+            <input type="checkbox" id="toggle-high-contrast" style="width: 20px; height: 20px; accent-color: var(--secondary);" />
+          </label>
+        </div>
+
+        <!-- PWA Installation Info -->
+        <div class="glass-card" style="margin-bottom: 1.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+            <h3 style="font-size: 1.2rem;">📱 Progressive Web App (PWA)</h3>
+            <span class="badge badge-success">PWA Ready</span>
+          </div>
+          <p class="text-muted text-sm" style="margin-bottom: 1rem;">Install BusTrack AI on iOS Safari (Share ➔ Add to Home Screen) or Android Chrome for standalone app experience.</p>
+          <button type="button" class="btn btn-outline btn-sm" onclick="if(window.PWAManager){document.getElementById('pwa-install-btn')?.click();}">
+            📲 Open Installation Prompt
+          </button>
+        </div>
+
+        <!-- Prototype Data Management -->
+        <div class="glass-card">
+          <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem; color: #fbbf24;">⚠️ Prototype Demo State</h3>
+          <p class="text-muted text-sm" style="margin-bottom: 1rem;">Reset demo schedules, local booking records, driver incident reports, and feedback logs back to initial factory demo data.</p>
+          
+          <button type="button" id="reset-demo-data-btn" class="btn btn-outline" style="border-color: #fbbf24; color: #fbbf24;">
+            🔄 Reset Prototype Demo Data
+          </button>
+        </div>
+      </main>
+
+      <!-- Mobile Bottom Navigation Bar -->
+      <nav class="mobile-bottom-nav">
+        <a href="passenger.html" class="bottom-nav-item">
+          <span class="nav-icon">🏠</span>
+          <span>Home</span>
+        </a>
+        <a href="booking.html" class="bottom-nav-item">
+          <span class="nav-icon">🎫</span>
+          <span>Book</span>
+        </a>
+        <a href="tracking.html" class="bottom-nav-item">
+          <span class="nav-icon">📍</span>
+          <span>Track</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-item">
+          <span class="nav-icon">👤</span>
+          <span>Profile</span>
+        </a>
+        <a href="settings.html" class="bottom-nav-item active">
+          <span class="nav-icon">⚙️</span>
+          <span>Settings</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/language.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const langSelect = document.getElementById('settings-lang-select');
+      if (langSelect) langSelect.value = LanguageManager.getLanguage();
+
+      const bgToggle = document.getElementById('toggle-animated-bg');
+      if (bgToggle) {
+        bgToggle.addEventListener('change', (e) => {
+          const canvas = document.getElementById('transit-bg-canvas');
+          if (canvas) {
+            canvas.style.display = e.target.checked ? 'block' : 'none';
+            UI.showToast(e.target.checked ? 'Background animations enabled' : 'Background animations paused', 'info');
+          }
+        });
+      }
+
+      const resetBtn = document.getElementById('reset-demo-data-btn');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          if (confirm('Reset all demo bookings, feedback, and buses to initial state?')) {
+            localStorage.removeItem('btai_seed_ver');
+            localStorage.removeItem('buses');
+            localStorage.removeItem('longDistanceBuses');
+            localStorage.removeItem('bookings');
+            localStorage.removeItem('feedback');
+            localStorage.removeItem('driverReports');
+            localStorage.removeItem('notifications');
+            UI.showToast('✅ Prototype data reset successfully! Reloading...', 'success');
+            setTimeout(() => window.location.reload(), 800);
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Help Center & FAQ — BusTrack AI</title>
+  <meta name="theme-color" content="#07111F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BusTrack AI" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/help.css" />
+</head>
+<body>
+  <canvas id="transit-bg-canvas"></canvas>
+  <div class="bg-grid-overlay"></div>
+  <div class="bg-gradient-glow"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-logo-icon">🚌</span>
+        <div>
+          <div class="sidebar-logo-text">BusTrack <span class="gradient-text-cyan">AI</span></div>
+          <span class="sidebar-role-badge">Support Desk</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="passenger.html" class="sidebar-link">
+          <span class="nav-icon">🏠</span>
+          <span data-i18n="dashboard">Dashboard</span>
+        </a>
+        <a href="passenger.html#search-section" class="sidebar-link">
+          <span class="nav-icon">🔍</span>
+          <span data-i18n="findBus">Find Bus</span>
+        </a>
+        <a href="booking.html" class="sidebar-link">
+          <span class="nav-icon">🎫</span>
+          <span data-i18n="bookTicket">Book Ticket</span>
+        </a>
+        <a href="bookings.html" class="sidebar-link">
+          <span class="nav-icon">📋</span>
+          <span data-i18n="myBookings">My Bookings</span>
+        </a>
+        <a href="tracking.html" class="sidebar-link">
+          <span class="nav-icon">📍</span>
+          <span data-i18n="liveTracking">Live Tracking</span>
+        </a>
+        <a href="feedback.html" class="sidebar-link">
+          <span class="nav-icon">⭐</span>
+          <span data-i18n="feedback">Feedback</span>
+        </a>
+        <a href="help.html" class="sidebar-link active">
+          <span class="nav-icon">🆘</span>
+          <span data-i18n="helpCenter">Help Center</span>
+        </a>
+        <a href="profile.html" class="sidebar-link">
+          <span class="nav-icon">👤</span>
+          <span data-i18n="profile">Profile</span>
+        </a>
+        <a href="settings.html" class="sidebar-link">
+          <span class="nav-icon">⚙️</span>
+          <span data-i18n="settings">Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button type="button" class="btn btn-outline btn-sm logout-btn" style="width: 100%;">
+          🚪 <span data-i18n="logout">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="app-header">
+        <div class="header-left">
+          <button id="menu-toggle-btn" class="menu-toggle-btn" aria-label="Toggle Menu">☰</button>
+          <div class="header-title">
+            <span data-i18n="helpCenter">🆘 BusTrack AI Help Center</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <select class="form-control language-selector-select" onchange="LanguageManager.setLanguage(this.value)" style="width: auto; min-height: 36px; padding: 0.25rem 1.75rem 0.25rem 0.5rem; font-size: 0.8rem;">
+            <option value="en">English</option>
+            <option value="ta">தமிழ்</option>
+            <option value="hi">हिन्दी</option>
+            <option value="te">తెలుగు</option>
+            <option value="kn">ಕನ್ನಡ</option>
+            <option value="ml">മലയാളം</option>
+          </select>
+
+          <a href="profile.html" class="user-profile-btn">
+            <div class="avatar">P</div>
+            <span class="current-user-name" style="font-size: 0.85rem; font-weight: 600;">Passenger</span>
+          </a>
+        </div>
+      </header>
+
+      <main class="page-body">
+        <!-- Help Hero Search -->
+        <div class="help-hero-banner">
+          <span class="badge badge-ai" style="margin-bottom: 0.5rem;">Knowledge Base & FAQs</span>
+          <h1 style="font-size: 1.8rem;">How can we assist your journey today?</h1>
+          <p class="text-muted text-sm">Find answers on AI ETA predictions, live tracking, long-distance ticketing, and prototype features.</p>
+          
+          <div class="help-search-input">
+            <input type="text" id="help-search-input" class="form-control" placeholder="🔍 Search help topics, keywords, or features..." style="padding: 0.75rem 1.25rem;" />
+          </div>
+        </div>
+
+        <!-- FAQ Categories -->
+        <div class="faq-categories-grid">
+          <button type="button" class="faq-category-btn active" data-cat="all">All Topics</button>
+          <button type="button" class="faq-category-btn" data-cat="search">Bus Search</button>
+          <button type="button" class="faq-category-btn" data-cat="tracking">Live Tracking</button>
+          <button type="button" class="faq-category-btn" data-cat="booking">Ticket Booking</button>
+          <button type="button" class="faq-category-btn" data-cat="payment">Demo Payment</button>
+          <button type="button" class="faq-category-btn" data-cat="ai">AI Features</button>
+          <button type="button" class="faq-category-btn" data-cat="feedback">Feedback</button>
+        </div>
+
+        <!-- FAQ Accordion -->
+        <div class="faq-accordion-list">
+          <div class="faq-item open" data-category="search">
+            <button type="button" class="faq-question-btn">
+              <span>How do I find a bus between city hubs?</span>
+              <span>▼</span>
+            </button>
+            <div class="faq-answer-body">
+              Navigate to the <strong>Find Bus</strong> page (or Passenger Dashboard), select your pickup hub (e.g. Gandhipuram) and destination (e.g. Ukkadam), and click <strong>🔍 Find Buses</strong>. You can filter between Government (TNSTC) and Private operators.
+            </div>
+          </div>
+
+          <div class="faq-item" data-category="tracking">
+            <button type="button" class="faq-question-btn">
+              <span>How does live GPS tracking work in this prototype?</span>
+              <span>▼</span>
+            </button>
+            <div class="faq-answer-body">
+              The prototype simulates GPS telematics, speedometers, and waypoint movements on an interactive HTML5 canvas map. In real-world deployment, this connects directly to on-bus IoT GPS transponders via authorized transport APIs.
+            </div>
+          </div>
+
+          <div class="faq-item" data-category="ai">
+            <button type="button" class="faq-question-btn">
+              <span>Is the AI Arrival Prediction (ETA) real?</span>
+              <span>▼</span>
+            </button>
+            <div class="faq-answer-body">
+              The prototype uses a simulated <strong>Time-Series / Regression-Based ETA Forecasting Engine</strong> (`predictArrival()`) combining live distance, simulated congestion factors, historical delays, and time-of-day peak multipliers.
+            </div>
+          </div>
+
+          <div class="faq-item" data-category="booking">
+            <button type="button" class="faq-question-btn">
+              <span>Can I compare and book both Government and Private buses?</span>
+              <span>▼</span>
+            </button>
+            <div class="faq-answer-body">
+              Yes! Visit <strong>Book Ticket</strong> to search long-distance corridors (e.g. Coimbatore ↔ Chennai), compare side-by-side fares and amenities, pick seats in our interactive 2x2 bus layout, and receive a digital QR e-ticket.
+            </div>
+          </div>
+
+          <div class="faq-item" data-category="payment">
+            <button type="button" class="faq-question-btn">
+              <span>Are the payment transactions real?</span>
+              <span>▼</span>
+            </button>
+            <div class="faq-answer-body">
+              <strong>No real money is processed.</strong> All checkout flows (UPI, Credit Card, Net Banking) are safe educational prototype simulations for assignment demonstration.
+            </div>
+          </div>
+
+          <div class="faq-item" data-category="feedback">
+            <button type="button" class="faq-question-btn">
+              <span>How does the AI Feedback Sentiment Analysis work?</span>
+              <span>▼</span>
+            </button>
+            <div class="faq-answer-body">
+              Our system runs a JavaScript-based Natural Language Processing classifier that parses passenger comments to detect positive/negative sentiments and extract operational bottlenecks such as delays, crowding, or driver behavior.
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Support Desk Form -->
+        <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+          <div style="margin-bottom: 1.25rem;">
+            <span class="badge badge-demo" style="margin-bottom: 0.5rem;">Support Desk</span>
+            <h3 style="font-size: 1.3rem;">Need Further Assistance? Contact Support</h3>
+            <p class="text-muted text-sm">Submit a ticket for technical help, booking queries, or transit corridor reports.</p>
+          </div>
+
+          <form id="support-ticket-form">
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;">
+              <div class="form-group">
+                <label class="form-label">Your Name</label>
+                <input type="text" id="support-name" class="form-control" placeholder="Enter your name" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" id="support-email" class="form-control" placeholder="name@domain.com" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Issue Category</label>
+              <select id="support-type" class="form-control form-select">
+                <option value="Technical Support">Technical Support</option>
+                <option value="Transport / Route Query">Transport / Route Query</option>
+                <option value="Booking Support">Booking & E-Ticket Query</option>
+                <option value="Report Bus Problem">Report Bus Issue</option>
+                <option value="App Bug Report">App Feedback / Bug</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Description of Problem</label>
+              <textarea id="support-desc" class="form-control" rows="3" placeholder="Describe the issue in detail..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+              Submit Support Ticket →
+            </button>
+          </form>
+        </div>
+      </main>
+
+      <!-- Mobile Bottom Navigation Bar -->
+      <nav class="mobile-bottom-nav">
+        <a href="passenger.html" class="bottom-nav-item">
+          <span class="nav-icon">🏠</span>
+          <span>Home</span>
+        </a>
+        <a href="booking.html" class="bottom-nav-item">
+          <span class="nav-icon">🎫</span>
+          <span>Book</span>
+        </a>
+        <a href="tracking.html" class="bottom-nav-item">
+          <span class="nav-icon">📍</span>
+          <span>Track</span>
+        </a>
+        <a href="help.html" class="bottom-nav-item active">
+          <span class="nav-icon">🆘</span>
+          <span>Help</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-item">
+          <span class="nav-icon">👤</span>
+          <span>Profile</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/language.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/help.js"></script>
+</body>
+</html>

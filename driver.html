@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Driver Operations Dashboard — BusTrack AI</title>
+  <meta name="theme-color" content="#07111F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BusTrack AI" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/driver.css" />
+</head>
+<body>
+  <canvas id="transit-bg-canvas"></canvas>
+  <div class="bg-grid-overlay"></div>
+  <div class="bg-gradient-glow"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-logo-icon">🚌</span>
+        <div>
+          <div class="sidebar-logo-text">BusTrack <span class="gradient-text-cyan">AI</span></div>
+          <span class="sidebar-role-badge">Driver Console</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="driver.html" class="sidebar-link active">
+          <span class="nav-icon">📊</span>
+          <span>Operations Console</span>
+        </a>
+        <a href="tracking.html" class="sidebar-link">
+          <span class="nav-icon">📍</span>
+          <span>Live GPS Map</span>
+        </a>
+        <a href="help.html" class="sidebar-link">
+          <span class="nav-icon">🆘</span>
+          <span data-i18n="helpCenter">Help Center</span>
+        </a>
+        <a href="profile.html" class="sidebar-link">
+          <span class="nav-icon">👤</span>
+          <span data-i18n="profile">Profile</span>
+        </a>
+        <a href="settings.html" class="sidebar-link">
+          <span class="nav-icon">⚙️</span>
+          <span data-i18n="settings">Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button type="button" class="btn btn-outline btn-sm logout-btn" style="width: 100%;">
+          🚪 <span data-i18n="logout">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="app-header">
+        <div class="header-left">
+          <button id="menu-toggle-btn" class="menu-toggle-btn" aria-label="Toggle Menu">☰</button>
+          <div class="header-title">
+            <span>Driver Trip Console</span>
+            <span class="badge badge-demo" style="margin-left: 0.5rem; display:none; @media(min-width:600px){display:inline-flex;}">Prototype</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <select class="form-control language-selector-select" onchange="LanguageManager.setLanguage(this.value)" style="width: auto; min-height: 36px; padding: 0.25rem 1.75rem 0.25rem 0.5rem; font-size: 0.8rem;">
+            <option value="en">English</option>
+            <option value="ta">தமிழ்</option>
+            <option value="hi">हिन्दी</option>
+            <option value="te">తెలుగు</option>
+            <option value="kn">ಕನ್ನಡ</option>
+            <option value="ml">മലയാളം</option>
+          </select>
+
+          <a href="profile.html" class="user-profile-btn">
+            <div class="avatar" style="background: linear-gradient(135deg, #10b981, #06b6d4);">M</div>
+            <span class="current-user-name" style="font-size: 0.85rem; font-weight: 600;">Murugan K.</span>
+          </a>
+        </div>
+      </header>
+
+      <main class="page-body">
+        <!-- Assigned Bus Telematics Section -->
+        <div class="driver-telematics-card">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+            <div>
+              <span class="badge badge-govt" style="margin-bottom:0.5rem;">Assigned Vehicle</span>
+              <h2 style="font-size: 1.6rem;">TN-38-N-1025</h2>
+              <div class="text-muted" style="font-size: 0.9rem;">Route 101: Gandhipuram Central ➔ Ukkadam Bus Stand</div>
+            </div>
+            <div>
+              <span id="driver-trip-status" class="badge badge-demo" style="font-size: 0.85rem; padding: 0.4rem 0.85rem;">Ready to Depart</span>
+            </div>
+          </div>
+
+          <div class="driver-stats-grid">
+            <div class="glass-card" style="background: rgba(7, 17, 31, 0.6); text-align: center;">
+              <div class="text-muted text-xs">CURRENT SPEED</div>
+              <div style="font-size: 2rem; font-weight: 900; color: #38bdf8;">
+                <span id="driver-live-speed">0</span> <span style="font-size: 0.85rem; color: #64748b;">km/h</span>
+              </div>
+            </div>
+
+            <div class="glass-card" style="background: rgba(7, 17, 31, 0.6); text-align: center;">
+              <div class="text-muted text-xs">PASSENGERS ONBOARD</div>
+              <div style="font-size: 2rem; font-weight: 900; color: #34d399;">
+                <span id="driver-passenger-count">34</span> / 48
+              </div>
+            </div>
+
+            <div class="glass-card" style="background: rgba(7, 17, 31, 0.6); text-align: center;">
+              <div class="text-muted text-xs">NEXT STOP</div>
+              <div id="driver-next-stop" style="font-size: 1.15rem; font-weight: 800; color: #fbbf24; margin-top: 0.3rem;">
+                Lakshmi Mills
+              </div>
+            </div>
+
+            <div class="glass-card" style="background: rgba(7, 17, 31, 0.6); text-align: center;">
+              <div class="text-muted text-xs">CORRIDOR STATUS</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: #22c55e; margin-top: 0.3rem;">
+                🟢 On-Time
+              </div>
+            </div>
+          </div>
+
+          <!-- Trip Control Action Buttons -->
+          <div class="driver-controls-grid">
+            <button type="button" id="driver-start-btn" class="driver-control-btn start">
+              <span style="font-size: 1.4rem;">🚀</span>
+              <span>Start Trip</span>
+            </button>
+
+            <button type="button" id="driver-pause-btn" class="driver-control-btn pause" style="display: none;">
+              <span style="font-size: 1.4rem;">⏸️</span>
+              <span>Pause</span>
+            </button>
+
+            <button type="button" id="driver-resume-btn" class="driver-control-btn start" style="display: none;">
+              <span style="font-size: 1.4rem;">▶️</span>
+              <span>Resume</span>
+            </button>
+
+            <button type="button" id="driver-complete-btn" class="driver-control-btn complete" style="display: none;">
+              <span style="font-size: 1.4rem;">🏁</span>
+              <span>Complete</span>
+            </button>
+
+            <button type="button" id="driver-share-gps-btn" class="driver-control-btn">
+              <span style="font-size: 1.4rem;">📡</span>
+              <span>Share GPS</span>
+            </button>
+
+            <button type="button" id="driver-report-issue-btn" class="driver-control-btn emergency">
+              <span style="font-size: 1.4rem;">🚨</span>
+              <span>Report Issue</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Incident History Log -->
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.2rem;">Driver Incident & Telemetry Dispatch Log</h3>
+            <span class="badge badge-simulation">Shift Log</span>
+          </div>
+          <div id="driver-reports-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </main>
+
+      <!-- Mobile Bottom Navigation Bar -->
+      <nav class="mobile-bottom-nav">
+        <a href="driver.html" class="bottom-nav-item active">
+          <span class="nav-icon">📊</span>
+          <span>Trip</span>
+        </a>
+        <a href="tracking.html" class="bottom-nav-item">
+          <span class="nav-icon">📍</span>
+          <span>Map</span>
+        </a>
+        <a href="help.html" class="bottom-nav-item">
+          <span class="nav-icon">🆘</span>
+          <span>Help</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-item">
+          <span class="nav-icon">👤</span>
+          <span>Profile</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Incident Reporting Modal -->
+  <div id="driver-issue-modal" class="modal-backdrop">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: #f87171;">🚨 Report Route Incident</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="driver-issue-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Incident Type</label>
+            <select id="driver-issue-type" class="form-control form-select">
+              <option value="Traffic Congestion">Traffic Congestion (+10m delay)</option>
+              <option value="Bus Breakdown">Mechanical / Bus Breakdown</option>
+              <option value="Route Blockage">Route Blockage / Diversion</option>
+              <option value="High Passenger Demand">High Passenger Demand (Full Capacity)</option>
+              <option value="Medical / Passenger Emergency">Medical / Emergency</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Incident Description & Location</label>
+            <textarea id="driver-issue-details" class="form-control" rows="3" placeholder="e.g. Traffic diverted near Lakshmi Mills bypass." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" data-modal-close>Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm">Dispatch to Admin</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/language.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/driver.js"></script>
+</body>
+</html>

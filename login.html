@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Login — BusTrack AI</title>
+  <meta name="theme-color" content="#07111F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BusTrack AI" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body>
+  <canvas id="transit-bg-canvas"></canvas>
+  <div class="bg-grid-overlay"></div>
+  <div class="bg-gradient-glow"></div>
+
+  <div class="login-container" style="padding-top: max(2rem, var(--safe-top)); padding-bottom: max(2rem, var(--safe-bottom));">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">🚌</div>
+        <h1 style="font-size: 1.65rem; margin-bottom: 0.35rem;">
+          Sign In to <span class="gradient-text-cyan">BusTrack AI</span>
+        </h1>
+        <p id="login-subtext" class="text-muted text-sm">Log in with your registered email and password.</p>
+        <div style="margin-top: 0.5rem;">
+          <span id="role-auth-badge" class="badge badge-demo">Passenger Login (Email + Password)</span>
+        </div>
+      </div>
+
+      <!-- 4 Role Selector Cards -->
+      <div class="role-selector-grid">
+        <button type="button" class="role-card-btn active" data-role="passenger" data-email="priya@bustrack.ai" data-user="passenger001" data-pass="passenger123">
+          <span class="role-icon">👤</span>
+          <span class="role-title">Passenger</span>
+          <span class="role-hint">Commuter</span>
+        </button>
+
+        <button type="button" class="role-card-btn" data-role="driver" data-email="driver001@bustrack.ai" data-user="driver001" data-pass="driver123">
+          <span class="role-icon">🚌</span>
+          <span class="role-title">Driver</span>
+          <span class="role-hint">Operations</span>
+        </button>
+
+        <button type="button" class="role-card-btn" data-role="admin" data-email="karthik.admin@bustrack.ai" data-user="admin001" data-pass="admin123">
+          <span class="role-icon">🏢</span>
+          <span class="role-title">Admin</span>
+          <span class="role-hint">Fleet Admin</span>
+        </button>
+
+        <button type="button" class="role-card-btn" data-role="minister" data-email="minister@transport.gov.in" data-user="minister001" data-pass="minister123">
+          <span class="role-icon">🏛️</span>
+          <span class="role-title">Minister</span>
+          <span class="role-hint">Command Hub</span>
+        </button>
+      </div>
+
+      <!-- Quick Demo Fill Info -->
+      <div class="demo-credentials-box">
+        <div class="demo-cred-info">
+          <span>Selected Role: </span>
+          <strong id="active-role-text">Passenger (priya@bustrack.ai)</strong>
+        </div>
+        <button type="button" id="auto-fill-btn" class="btn btn-outline btn-sm" style="min-height:34px;">Auto Fill</button>
+      </div>
+
+      <!-- General Error Message Banner -->
+      <div id="login-error-msg" class="auth-alert-banner" style="display: none;"></div>
+
+      <!-- Login Form -->
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="email" id="login-id-label">Email Address</label>
+          <input type="text" id="email" class="form-control" placeholder="e.g. yogesh@gmail.com" required value="priya@bustrack.ai" autocomplete="username" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="password-input-wrap">
+            <input type="password" id="password" class="form-control" placeholder="Enter your password" required value="passenger123" autocomplete="current-password" />
+            <button type="button" class="toggle-password-btn" id="toggle-login-pass-btn" aria-label="Toggle Password Visibility">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-options-row">
+          <span></span>
+          <button type="button" id="forgot-password-trigger" class="forgot-password-link">
+            Forgot Password?
+          </button>
+        </div>
+
+        <div class="login-btn-group">
+          <button type="submit" id="login-submit-btn" class="btn btn-primary btn-lg" style="width: 100%;">
+            Sign In to Dashboard →
+          </button>
+        </div>
+      </form>
+
+      <!-- Create New Account Prompt (ONLY visible for Passenger) -->
+      <div id="account-toggle-box" class="account-toggle-box">
+        Don't have an account?
+        <a href="register.html" class="btn btn-outline btn-sm" style="margin-top: 0.5rem; display: block; width: 100%; text-align: center; border-color: var(--secondary); color: var(--secondary);">
+          Create New Account
+        </a>
+      </div>
+
+      <div style="text-align: center;">
+        <a href="index.html" class="back-home-link">← Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forgot Password Prototype Modal -->
+  <div id="forgot-password-modal" class="auth-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="forgot-modal-title">
+    <div class="auth-modal-content">
+      <div style="text-align: center; margin-bottom: 1.25rem;">
+        <div style="font-size: 2.25rem; margin-bottom: 0.5rem;">🔒</div>
+        <h3 id="forgot-modal-title" style="font-size: 1.3rem; margin-bottom: 0.5rem;">Forgot Password</h3>
+        <p class="text-muted text-sm" style="line-height: 1.6;">
+          Password recovery will be connected to a secure backend authentication service in the production version.
+        </p>
+      </div>
+
+      <div style="background: rgba(7, 17, 31, 0.6); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 1.5rem; font-size: 0.8rem; color: var(--text-dim);">
+        <strong style="color: #38bdf8;">Tip for Prototype:</strong> If testing a new account, you can create a fresh passenger account via <a href="register.html" style="color: #38bdf8; text-decoration: underline;">Create New Account</a> or use preset demo accounts.
+      </div>
+
+      <button type="button" id="close-forgot-modal-btn" class="btn btn-primary" style="width: 100%;">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/language.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const roleButtons = document.querySelectorAll('.role-card-btn');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const loginIdLabel = document.getElementById('login-id-label');
+      const activeRoleText = document.getElementById('active-role-text');
+      const roleAuthBadge = document.getElementById('role-auth-badge');
+      const loginSubtext = document.getElementById('login-subtext');
+      const accountToggleBox = document.getElementById('account-toggle-box');
+      const autoFillBtn = document.getElementById('auto-fill-btn');
+      const loginForm = document.getElementById('login-form');
+      const errorMsg = document.getElementById('login-error-msg');
+      const toggleLoginPassBtn = document.getElementById('toggle-login-pass-btn');
+
+      const forgotModal = document.getElementById('forgot-password-modal');
+      const forgotTrigger = document.getElementById('forgot-password-trigger');
+      const closeForgotBtn = document.getElementById('close-forgot-modal-btn');
+
+      // Check if redirected with pre-filled email from register.html
+      const urlParams = new URLSearchParams(window.location.search);
+      const prefillEmail = urlParams.get('email');
+      if (prefillEmail) {
+        emailInput.value = prefillEmail;
+        passwordInput.value = '';
+        passwordInput.focus();
+        roleButtons.forEach(b => b.classList.remove('active'));
+        document.querySelector('.role-card-btn[data-role="passenger"]')?.classList.add('active');
+        activeRoleText.textContent = `New Passenger (${prefillEmail})`;
+      }
+
+      // Password visibility toggle
+      toggleLoginPassBtn.addEventListener('click', () => {
+        const isPass = passwordInput.type === 'password';
+        passwordInput.type = isPass ? 'text' : 'password';
+        toggleLoginPassBtn.textContent = isPass ? '🙈' : '👁️';
+      });
+
+      let currentSelectedRole = {
+        role: 'passenger',
+        email: 'priya@bustrack.ai',
+        user: 'passenger001',
+        pass: 'passenger123',
+        title: 'Passenger'
+      };
+
+      const updateRoleUI = (role) => {
+        if (role === 'passenger') {
+          loginIdLabel.textContent = 'Email Address';
+          emailInput.placeholder = 'e.g. yogesh@gmail.com';
+          emailInput.type = 'text';
+          loginSubtext.textContent = 'Log in with your registered email and password.';
+          roleAuthBadge.textContent = 'Passenger Login (Email + Password)';
+          roleAuthBadge.className = 'badge badge-demo';
+          // SHOW registration for Passenger ONLY
+          accountToggleBox.style.display = 'block';
+        } else if (role === 'driver') {
+          loginIdLabel.textContent = 'Driver ID / Credentials';
+          emailInput.placeholder = 'e.g. driver001';
+          emailInput.type = 'text';
+          loginSubtext.textContent = 'Enter driver authorization credentials.';
+          roleAuthBadge.textContent = 'Driver Operations Login';
+          roleAuthBadge.className = 'badge badge-ai';
+          // HIDE registration for Driver
+          accountToggleBox.style.display = 'none';
+        } else if (role === 'admin') {
+          loginIdLabel.textContent = 'Admin ID / Credentials';
+          emailInput.placeholder = 'e.g. admin001';
+          emailInput.type = 'text';
+          loginSubtext.textContent = 'Enter administrator authorization credentials.';
+          roleAuthBadge.textContent = 'Fleet Administrator Login';
+          roleAuthBadge.className = 'badge badge-demo';
+          // HIDE registration for Admin
+          accountToggleBox.style.display = 'none';
+        } else if (role === 'minister') {
+          loginIdLabel.textContent = 'Minister Access ID';
+          emailInput.placeholder = 'e.g. minister001';
+          emailInput.type = 'text';
+          loginSubtext.textContent = 'Authorized governmental ministerial access only.';
+          roleAuthBadge.textContent = 'State Command Center Login (Restricted)';
+          roleAuthBadge.className = 'badge badge-govt';
+          // HIDE registration for Minister
+          accountToggleBox.style.display = 'none';
+        }
+      };
+
+      roleButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          roleButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          currentSelectedRole = {
+            role: btn.dataset.role,
+            email: btn.dataset.email,
+            user: btn.dataset.user,
+            pass: btn.dataset.pass,
+            title: btn.querySelector('.role-title').textContent
+          };
+
+          updateRoleUI(currentSelectedRole.role);
+
+          activeRoleText.textContent = `${currentSelectedRole.title} (${currentSelectedRole.email})`;
+          emailInput.value = currentSelectedRole.email;
+          passwordInput.value = currentSelectedRole.pass;
+          errorMsg.style.display = 'none';
+        });
+      });
+
+      autoFillBtn.addEventListener('click', () => {
+        emailInput.value = currentSelectedRole.email;
+        passwordInput.value = currentSelectedRole.pass;
+        UI.showToast(`Auto-filled ${currentSelectedRole.title} credentials!`, 'info');
+      });
+
+      // Forgot Password Modal Handlers
+      forgotTrigger.addEventListener('click', () => {
+        forgotModal.classList.add('active');
+      });
+
+      closeForgotBtn.addEventListener('click', () => {
+        forgotModal.classList.remove('active');
+      });
+
+      forgotModal.addEventListener('click', (e) => {
+        if (e.target === forgotModal) {
+          forgotModal.classList.remove('active');
+        }
+      });
+
+      // Login form submission
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        errorMsg.style.display = 'none';
+
+        const identifier = emailInput.value.trim();
+        const pass = passwordInput.value;
+
+        if (!identifier || !pass) {
+          errorMsg.textContent = 'Please enter both your credentials and password.';
+          errorMsg.style.display = 'flex';
+          return;
+        }
+
+        const result = AuthManager.login(identifier, pass);
+        if (result.success) {
+          UI.showToast(`Welcome, ${result.user.name}! Redirecting...`, 'success');
+          setTimeout(() => {
+            const redirect = urlParams.get('redirect');
+            if (redirect) {
+              window.location.href = redirect;
+            } else {
+              window.location.href = AuthManager.getRoleLandingPage(result.user.role);
+            }
+          }, 600);
+        } else {
+          errorMsg.textContent = result.message;
+          errorMsg.style.display = 'flex';
+          UI.showToast(result.message, 'danger');
+        }
+      });
+
+      // Initialize UI for default Passenger role
+      updateRoleUI('passenger');
+    });
+  </script>
+</body>
+</html>

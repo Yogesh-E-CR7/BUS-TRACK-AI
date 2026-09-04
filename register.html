@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Create Account — BusTrack AI</title>
+  <meta name="theme-color" content="#07111F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BusTrack AI" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body>
+  <canvas id="transit-bg-canvas"></canvas>
+  <div class="bg-grid-overlay"></div>
+  <div class="bg-gradient-glow"></div>
+
+  <div class="login-container" style="padding-top: max(2rem, var(--safe-top)); padding-bottom: max(2rem, var(--safe-bottom));">
+    <div class="login-card register-card">
+      
+      <!-- Registration Form Card View -->
+      <div id="registration-form-view">
+        <div class="login-header">
+          <div class="login-logo">🚌</div>
+          <h1 style="font-size: 1.65rem; margin-bottom: 0.35rem;">
+            Create Your <span class="gradient-text-cyan">BusTrack AI</span> Account
+          </h1>
+          <p class="text-muted text-sm">Create your passenger account and travel smarter.</p>
+          <div style="margin-top: 0.5rem;">
+            <span class="badge badge-ai">Passenger Account Registration</span>
+          </div>
+        </div>
+
+        <!-- Duplicate Email Alert Banner (Hidden by default) -->
+        <div id="duplicate-email-alert" class="auth-alert-banner" style="display: none;">
+          <div>
+            <strong>⚠️ This email is already registered.</strong>
+            <div style="font-size: 0.75rem; color: #fecaca;">Please log in with your existing password or use another email.</div>
+          </div>
+          <a href="login.html" id="dup-login-btn" class="btn btn-outline btn-sm" style="min-height: 32px; padding: 0.25rem 0.75rem; white-space: nowrap; border-color: #ef4444; color: #fff;">
+            Login Instead →
+          </a>
+        </div>
+
+        <!-- General Error Message Banner -->
+        <div id="reg-error-msg" class="auth-alert-banner" style="display: none;"></div>
+
+        <form id="register-form" novalidate>
+          <!-- Full Name -->
+          <div class="form-group">
+            <label class="form-label" for="reg-name">Full Name <span style="color: #f87171;">*</span></label>
+            <input type="text" id="reg-name" class="form-control" placeholder="e.g. Priya Sharma" required autocomplete="name" />
+          </div>
+
+          <!-- Email Address (Login ID) -->
+          <div class="form-group">
+            <label class="form-label" for="reg-email">
+              Email Address (Your Login ID) <span style="color: #f87171;">*</span>
+            </label>
+            <input type="email" id="reg-email" class="form-control" placeholder="e.g. yogesh@gmail.com" required autocomplete="email" />
+            <span class="text-muted text-xs" style="display:block; margin-top:0.25rem;">
+              Your email address is your primary login identifier.
+            </span>
+          </div>
+
+          <!-- Create Password -->
+          <div class="form-group">
+            <label class="form-label" for="reg-password">Create Password <span style="color: #f87171;">*</span></label>
+            <div class="password-input-wrap">
+              <input type="password" id="reg-password" class="form-control" placeholder="e.g. BusTrack@123" required autocomplete="new-password" />
+              <button type="button" class="toggle-password-btn" id="toggle-reg-pass-btn" aria-label="Toggle Password Visibility">👁️</button>
+            </div>
+            
+            <!-- Password Strength Meter -->
+            <div class="password-strength-container" id="password-strength-box" style="display: none;">
+              <div class="strength-bar-bg">
+                <div class="strength-bar-fill" id="strength-bar-fill"></div>
+              </div>
+              <div class="strength-meta">
+                <span>Strength: <strong id="strength-label-text">Weak</strong></span>
+                <span id="strength-status-text">Requirements remaining</span>
+              </div>
+            </div>
+
+            <!-- Password Requirements Checklist -->
+            <ul class="password-requirements-list" id="password-rules-list">
+              <li id="rule-length" class="invalid"><span>⚪</span> Minimum 8 characters</li>
+              <li id="rule-upper" class="invalid"><span>⚪</span> One uppercase letter (A-Z)</li>
+              <li id="rule-lower" class="invalid"><span>⚪</span> One lowercase letter (a-z)</li>
+              <li id="rule-number" class="invalid"><span>⚪</span> One number (0-9)</li>
+              <li id="rule-special" class="invalid"><span>⚪</span> One special character (!@#$%^&*)</li>
+            </ul>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-group">
+            <label class="form-label" for="reg-confirm-password">Confirm Password <span style="color: #f87171;">*</span></label>
+            <div class="password-input-wrap">
+              <input type="password" id="reg-confirm-password" class="form-control" placeholder="Re-enter password" required autocomplete="new-password" />
+              <button type="button" class="toggle-password-btn" id="toggle-confirm-pass-btn" aria-label="Toggle Password Visibility">👁️</button>
+            </div>
+            <div id="pass-match-indicator" style="font-size: 0.75rem; margin-top: 0.25rem; display: none;"></div>
+          </div>
+
+          <!-- Preferred Language -->
+          <div class="form-group">
+            <label class="form-label" for="reg-language">Preferred Language <span style="color: #f87171;">*</span></label>
+            <select id="reg-language" class="form-control">
+              <option value="en" selected>English</option>
+              <option value="ta">தமிழ் (Tamil)</option>
+              <option value="hi">हिन्दी (Hindi)</option>
+              <option value="te">తెలుగు (Telugu)</option>
+              <option value="kn">ಕನ್ನಡ (Kannada)</option>
+              <option value="ml">മലയാളം (Malayalam)</option>
+            </select>
+          </div>
+
+          <!-- Optional Fields Row -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <div class="form-group">
+              <label class="form-label" for="reg-phone">Mobile Number <span class="text-muted text-xs">(Optional)</span></label>
+              <input type="tel" id="reg-phone" class="form-control" placeholder="e.g. +91 98765 43210" autocomplete="tel" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-city">City <span class="text-muted text-xs">(Optional)</span></label>
+              <input type="text" id="reg-city" class="form-control" placeholder="e.g. Coimbatore" />
+            </div>
+          </div>
+
+          <!-- Create Account Button -->
+          <div class="login-btn-group">
+            <button type="submit" id="create-account-btn" class="btn btn-primary btn-lg" style="width: 100%;">
+              Create Account →
+            </button>
+          </div>
+        </form>
+
+        <div class="account-toggle-box">
+          Already have an account? <a href="login.html">Sign In</a>
+        </div>
+
+        <div style="text-align: center;">
+          <a href="index.html" class="back-home-link">← Back to Home</a>
+        </div>
+      </div>
+
+      <!-- Registration Success Card View (Hidden until account created) -->
+      <div id="registration-success-view" class="success-card-body" style="display: none;">
+        <div class="success-icon-badge">✓</div>
+        <h2 style="font-size: 1.6rem; margin-bottom: 0.35rem; color: #fff;">
+          Account Created Successfully!
+        </h2>
+        <p class="text-muted text-sm">Your BusTrack AI passenger account is ready.</p>
+
+        <div class="account-details-card">
+          <div class="account-details-row">
+            <span class="text-muted">Full Name:</span>
+            <strong id="success-name-display" style="color: #fff;">-</strong>
+          </div>
+          <div class="account-details-row">
+            <span class="text-muted">Login ID (Email):</span>
+            <strong id="success-email-display" style="color: #38bdf8;">-</strong>
+          </div>
+          <div class="account-details-row">
+            <span class="text-muted">User ID:</span>
+            <span id="success-id-display" class="badge badge-ai" style="font-family: monospace;">-</span>
+          </div>
+          <div class="account-details-row">
+            <span class="text-muted">Account Type:</span>
+            <span class="badge badge-demo">Passenger</span>
+          </div>
+          <div class="account-details-row">
+            <span class="text-muted">Status:</span>
+            <span style="color: #34d399; font-weight: 600;">● Active</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          <button type="button" id="continue-to-login-btn" class="btn btn-primary btn-lg" style="width: 100%;">
+            Continue to Login →
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/language.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const regForm = document.getElementById('register-form');
+      const nameInput = document.getElementById('reg-name');
+      const emailInput = document.getElementById('reg-email');
+      const passwordInput = document.getElementById('reg-password');
+      const confirmPasswordInput = document.getElementById('reg-confirm-password');
+      const languageSelect = document.getElementById('reg-language');
+      const phoneInput = document.getElementById('reg-phone');
+      const cityInput = document.getElementById('reg-city');
+
+      const toggleRegPassBtn = document.getElementById('toggle-reg-pass-btn');
+      const toggleConfirmPassBtn = document.getElementById('toggle-confirm-pass-btn');
+
+      const strengthBox = document.getElementById('password-strength-box');
+      const strengthBarFill = document.getElementById('strength-bar-fill');
+      const strengthLabelText = document.getElementById('strength-label-text');
+      const strengthStatusText = document.getElementById('strength-status-text');
+
+      const ruleLength = document.getElementById('rule-length');
+      const ruleUpper = document.getElementById('rule-upper');
+      const ruleLower = document.getElementById('rule-lower');
+      const ruleNumber = document.getElementById('rule-number');
+      const ruleSpecial = document.getElementById('rule-special');
+
+      const matchIndicator = document.getElementById('pass-match-indicator');
+      const duplicateAlert = document.getElementById('duplicate-email-alert');
+      const dupLoginBtn = document.getElementById('dup-login-btn');
+      const errorMsgBanner = document.getElementById('reg-error-msg');
+
+      const formView = document.getElementById('registration-form-view');
+      const successView = document.getElementById('registration-success-view');
+      const continueLoginBtn = document.getElementById('continue-to-login-btn');
+
+      let registeredEmail = '';
+
+      // Toggle password visibility
+      toggleRegPassBtn.addEventListener('click', () => {
+        const isPass = passwordInput.type === 'password';
+        passwordInput.type = isPass ? 'text' : 'password';
+        toggleRegPassBtn.textContent = isPass ? '🙈' : '👁️';
+      });
+
+      toggleConfirmPassBtn.addEventListener('click', () => {
+        const isPass = confirmPasswordInput.type === 'password';
+        confirmPasswordInput.type = isPass ? 'text' : 'password';
+        toggleConfirmPassBtn.textContent = isPass ? '🙈' : '👁️';
+      });
+
+      // Real-time password validation & strength meter
+      function updatePasswordValidation() {
+        const val = passwordInput.value;
+        if (!val) {
+          strengthBox.style.display = 'none';
+          [ruleLength, ruleUpper, ruleLower, ruleNumber, ruleSpecial].forEach(el => {
+            el.className = 'invalid';
+            el.querySelector('span').textContent = '⚪';
+          });
+          return;
+        }
+
+        strengthBox.style.display = 'block';
+
+        const isLen = val.length >= 8;
+        const isUpper = /[A-Z]/.test(val);
+        const isLower = /[a-z]/.test(val);
+        const isNum = /[0-9]/.test(val);
+        const isSpec = /[^A-Za-z0-9]/.test(val);
+
+        const updateRule = (el, valid) => {
+          el.className = valid ? 'valid' : 'invalid';
+          el.querySelector('span').textContent = valid ? '✅' : '⚪';
+        };
+
+        updateRule(ruleLength, isLen);
+        updateRule(ruleUpper, isUpper);
+        updateRule(ruleLower, isLower);
+        updateRule(ruleNumber, isNum);
+        updateRule(ruleSpecial, isSpec);
+
+        const strength = AuthManager.checkPasswordStrength(val);
+        strengthBarFill.style.width = strength.percent + '%';
+        strengthBarFill.style.backgroundColor = strength.color;
+        strengthLabelText.textContent = strength.label;
+        strengthLabelText.style.color = strength.color;
+
+        if (isLen && isUpper && isLower && isNum && isSpec) {
+          strengthStatusText.textContent = 'All requirements met!';
+          strengthStatusText.style.color = '#34d399';
+        } else {
+          strengthStatusText.textContent = 'Requirements remaining';
+          strengthStatusText.style.color = 'var(--text-dim)';
+        }
+
+        checkPasswordMatch();
+      }
+
+      function checkPasswordMatch() {
+        const pass = passwordInput.value;
+        const confirm = confirmPasswordInput.value;
+
+        if (!confirm) {
+          matchIndicator.style.display = 'none';
+          return;
+        }
+
+        matchIndicator.style.display = 'block';
+        if (pass === confirm) {
+          matchIndicator.textContent = '✅ Passwords match';
+          matchIndicator.style.color = '#34d399';
+        } else {
+          matchIndicator.textContent = '⚠️ Passwords do not match';
+          matchIndicator.style.color = '#f87171';
+        }
+      }
+
+      passwordInput.addEventListener('input', updatePasswordValidation);
+      confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+
+      // Clear alerts on email input
+      emailInput.addEventListener('input', () => {
+        duplicateAlert.style.display = 'none';
+        errorMsgBanner.style.display = 'none';
+      });
+
+      // Submit Registration Form
+      regForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        duplicateAlert.style.display = 'none';
+        errorMsgBanner.style.display = 'none';
+
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const language = languageSelect.value;
+        const phone = phoneInput.value.trim();
+        const city = cityInput.value.trim();
+
+        if (!name) {
+          showError('Please enter your full name.');
+          nameInput.focus();
+          return;
+        }
+
+        if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+          showError('Please enter a valid email address.');
+          emailInput.focus();
+          return;
+        }
+
+        if (!AuthManager.validatePasswordRequirements(password)) {
+          showError('Password does not meet the minimum security requirements.');
+          passwordInput.focus();
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          showError('Passwords do not match. Please verify your confirm password field.');
+          confirmPasswordInput.focus();
+          return;
+        }
+
+        const regResult = AuthManager.register({
+          name,
+          email,
+          password,
+          confirmPassword,
+          language,
+          phone,
+          city
+        });
+
+        if (regResult.success) {
+          registeredEmail = email;
+          document.getElementById('success-name-display').textContent = regResult.user.name;
+          document.getElementById('success-email-display').textContent = regResult.user.email;
+          document.getElementById('success-id-display').textContent = regResult.user.id;
+
+          formView.style.display = 'none';
+          successView.style.display = 'block';
+
+          UI.showToast('Account Created Successfully!', 'success');
+        } else {
+          if (regResult.code === 'DUPLICATE_EMAIL') {
+            dupLoginBtn.href = `login.html?email=${encodeURIComponent(email)}`;
+            duplicateAlert.style.display = 'flex';
+          } else {
+            showError(regResult.message);
+          }
+          UI.showToast(regResult.message, 'danger');
+        }
+      });
+
+      function showError(msg) {
+        errorMsgBanner.textContent = msg;
+        errorMsgBanner.style.display = 'block';
+      }
+
+      // Continue to Login button
+      continueLoginBtn.addEventListener('click', () => {
+        window.location.href = `login.html?email=${encodeURIComponent(registeredEmail)}`;
+      });
+    });
+  </script>
+</body>
+</html>

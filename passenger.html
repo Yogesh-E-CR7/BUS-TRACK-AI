@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Find Buses — BusTrack AI</title>
+  <meta name="theme-color" content="#07111F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BusTrack AI" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/passenger.css" />
+</head>
+<body>
+  <canvas id="transit-bg-canvas"></canvas>
+  <div class="bg-grid-overlay"></div>
+  <div class="bg-gradient-glow"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-logo-icon">🚌</span>
+        <div>
+          <div class="sidebar-logo-text">BusTrack <span class="gradient-text-cyan">AI</span></div>
+          <span class="sidebar-role-badge">Passenger Hub</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="passenger.html" class="sidebar-link active">
+          <span class="nav-icon">🏠</span>
+          <span data-i18n="dashboard">Dashboard</span>
+        </a>
+        <a href="passenger.html#search-section" class="sidebar-link">
+          <span class="nav-icon">🔍</span>
+          <span data-i18n="findBus">Find Bus</span>
+        </a>
+        <a href="booking.html" class="sidebar-link">
+          <span class="nav-icon">🎫</span>
+          <span data-i18n="bookTicket">Book Ticket</span>
+        </a>
+        <a href="bookings.html" class="sidebar-link">
+          <span class="nav-icon">📋</span>
+          <span data-i18n="myBookings">My Bookings</span>
+        </a>
+        <a href="tracking.html" class="sidebar-link">
+          <span class="nav-icon">📍</span>
+          <span data-i18n="liveTracking">Live Tracking</span>
+        </a>
+        <a href="feedback.html" class="sidebar-link">
+          <span class="nav-icon">⭐</span>
+          <span data-i18n="feedback">Feedback</span>
+        </a>
+        <a href="help.html" class="sidebar-link">
+          <span class="nav-icon">🆘</span>
+          <span data-i18n="helpCenter">Help Center</span>
+        </a>
+        <a href="profile.html" class="sidebar-link">
+          <span class="nav-icon">👤</span>
+          <span data-i18n="profile">Profile</span>
+        </a>
+        <a href="settings.html" class="sidebar-link">
+          <span class="nav-icon">⚙️</span>
+          <span data-i18n="settings">Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button type="button" class="btn btn-outline btn-sm logout-btn" style="width: 100%;">
+          🚪 <span data-i18n="logout">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main App Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="header-left">
+          <button id="menu-toggle-btn" class="menu-toggle-btn" aria-label="Toggle Menu">☰</button>
+          <div class="header-title">
+            <span>Find & Track Buses</span>
+            <span class="badge badge-demo" style="margin-left: 0.5rem; display:none; @media(min-width:600px){display:inline-flex;}">Demo Data</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Language Selector -->
+          <select class="form-control language-selector-select" onchange="LanguageManager.setLanguage(this.value)" style="width: auto; min-height: 36px; padding: 0.25rem 1.75rem 0.25rem 0.5rem; font-size: 0.8rem;">
+            <option value="en">English</option>
+            <option value="ta">தமிழ்</option>
+            <option value="hi">हिन्दी</option>
+            <option value="te">తెలుగు</option>
+            <option value="kn">ಕನ್ನಡ</option>
+            <option value="ml">മലയാളം</option>
+          </select>
+
+          <!-- Notifications Button & Dropdown -->
+          <div style="position: relative;">
+            <button id="notification-btn" class="header-action-btn" aria-label="Notifications">
+              🔔
+              <span class="notification-count">3</span>
+            </button>
+            <div id="notifications-dropdown" class="notifications-dropdown">
+              <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.35rem;">
+                Recent Travel Notifications
+              </div>
+              <div class="notification-item">
+                <div style="color: #38bdf8; font-weight: 600;">🚌 Bus TN-38-N-1025</div>
+                <div class="text-muted">Approaching Gandhipuram in 8 minutes.</div>
+              </div>
+              <div class="notification-item">
+                <div style="color: #34d399; font-weight: 600;">🎫 Booking Confirmed</div>
+                <div class="text-muted">Coimbatore → Chennai (Seat 03, 04)</div>
+              </div>
+              <div class="notification-item">
+                <div style="color: #fbbf24; font-weight: 600;">⏱️ Traffic Alert</div>
+                <div class="text-muted">10-min delay near Singanallur junction.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Profile Pill -->
+          <a href="profile.html" class="user-profile-btn">
+            <div class="avatar">P</div>
+            <span class="current-user-name" style="font-size: 0.85rem; font-weight: 600;">Priya Sharma</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <main class="page-body">
+        <!-- Initial Search Section (FROM + TO + DATE ONLY) -->
+        <section id="search-section" class="search-hero-card">
+          <div style="margin-bottom: 1.25rem;">
+            <div class="badge badge-ai" style="margin-bottom: 0.5rem;">Smart Transit Discovery</div>
+            <h2 data-i18n="whereTravelling" style="font-size: 1.6rem; margin-bottom: 0.35rem;">
+              Find Available Buses
+            </h2>
+            <p class="text-muted text-sm">
+              Search by route and travel date to see all Government and Private departures.
+            </p>
+          </div>
+
+          <!-- Strict Initial Search Form: ONLY From + To + Date + Search Button -->
+          <form id="bus-search-form" class="search-form-grid">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="search-from" data-i18n="from">From Location</label>
+              <select id="search-from" class="form-control form-select">
+                <option value="Chennai" selected>Chennai</option>
+                <option value="Coimbatore">Coimbatore</option>
+                <option value="Gandhipuram">Gandhipuram Central Hub</option>
+                <option value="Ukkadam">Ukkadam Bus Stand</option>
+                <option value="Singanallur">Singanallur Junction</option>
+                <option value="Peelamedu">Peelamedu College Zone</option>
+                <option value="Town Hall">Town Hall City Center</option>
+                <option value="Saravanampatti">Saravanampatti IT Park</option>
+                <option value="Madurai">Madurai</option>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Salem">Salem</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="search-to" data-i18n="to">To Destination</label>
+              <select id="search-to" class="form-control form-select">
+                <option value="Coimbatore" selected>Coimbatore</option>
+                <option value="Chennai">Chennai</option>
+                <option value="Ukkadam">Ukkadam Bus Stand</option>
+                <option value="Gandhipuram">Gandhipuram Central Hub</option>
+                <option value="Singanallur">Singanallur Junction</option>
+                <option value="Peelamedu">Peelamedu College Zone</option>
+                <option value="Saravanampatti">Saravanampatti IT Park</option>
+                <option value="Town Hall">Town Hall City Center</option>
+                <option value="Madurai">Madurai</option>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Salem">Salem</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="search-date" data-i18n="date">Travel Date</label>
+              <input type="date" id="search-date" class="form-control" value="2026-09-10" />
+            </div>
+
+            <div>
+              <button type="submit" id="find-buses-btn" class="btn btn-primary btn-lg" style="width: 100%; height: 46px; font-weight: 700;" data-i18n="findBusesBtn">
+                🔍 Search Available Buses
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Dynamic Results Header Bar -->
+        <div id="results-header-card" class="results-header-card">
+          <div>
+            <div class="results-route-title">
+              <span>Available Buses</span>
+              <span style="color: var(--secondary);">•</span>
+              <span id="res-from-to" style="color: #38bdf8;">Chennai ➔ Coimbatore</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+              📅 <span id="res-travel-date" style="color: #fff; font-weight: 600;">10 September 2026</span>
+              <span style="margin: 0 0.5rem;">•</span>
+              <span class="badge badge-demo" style="font-size: 0.65rem;">Demo Data</span>
+            </div>
+          </div>
+
+          <div class="results-meta-badges">
+            <span id="results-count" class="operator-stat-pill" style="color: #38bdf8; font-weight: 700; border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.1);">
+              Calculating...
+            </span>
+            <span id="govt-count-pill" class="operator-stat-pill govt">
+              🏛️ Government: 0
+            </span>
+            <span id="pvt-count-pill" class="operator-stat-pill private">
+              🏢 Private: 0
+            </span>
+          </div>
+        </div>
+
+        <!-- Optional Post-Search Filter Chips -->
+        <div class="filter-sections-wrap">
+          <!-- Filter 1: Operator -->
+          <div class="filter-pills-bar">
+            <span class="filter-group-label">Operator:</span>
+            <button type="button" class="filter-pill active" data-filter="all" data-i18n="all">All Operators</button>
+            <button type="button" class="filter-pill" data-filter="Government" data-i18n="government">Government</button>
+            <button type="button" class="filter-pill" data-filter="Private" data-i18n="private">Private</button>
+          </div>
+
+          <!-- Filter 2: Bus Category -->
+          <div class="filter-pills-bar">
+            <span class="filter-group-label">Category:</span>
+            <button type="button" class="filter-pill active" data-cat-filter="all">All Types</button>
+            <button type="button" class="filter-pill" data-cat-filter="AC">❄️ AC</button>
+            <button type="button" class="filter-pill" data-cat-filter="Non-AC">Non-AC</button>
+            <button type="button" class="filter-pill" data-cat-filter="Sleeper">🛏️ Sleeper</button>
+            <button type="button" class="filter-pill" data-cat-filter="Seater">💺 Seater</button>
+          </div>
+
+          <!-- Filter 3: Departure Window (Optional) -->
+          <div class="filter-pills-bar">
+            <span class="filter-group-label">Departure:</span>
+            <button type="button" class="filter-pill active" data-time-filter="all">All Times</button>
+            <button type="button" class="filter-pill" data-time-filter="morning">🌅 Morning (6 AM - 12 PM)</button>
+            <button type="button" class="filter-pill" data-time-filter="afternoon">☀️ Afternoon (12 PM - 5 PM)</button>
+            <button type="button" class="filter-pill" data-time-filter="evening">🌙 Evening & Night (5 PM - 12 AM)</button>
+          </div>
+        </div>
+
+        <!-- Bus Result Cards Grid -->
+        <div id="bus-results-container" class="bus-results-grid">
+          <!-- Populated dynamically by js/passenger.js -->
+        </div>
+
+        <!-- Long Distance CTA Banner -->
+        <div class="glass-card" style="margin-top: 2.5rem; background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(139, 92, 246, 0.2)); border-color: rgba(139, 92, 246, 0.4); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem;">
+          <div>
+            <span class="badge badge-ai" style="margin-bottom: 0.5rem;">Intercity Travel</span>
+            <h3 style="font-size: 1.3rem;">Planning an Intercity Journey?</h3>
+            <p class="text-muted text-sm">Compare SETC Government vs. Private Luxury Sleeper buses, pick seats, and book digital e-tickets.</p>
+          </div>
+          <a href="booking.html" class="btn btn-accent" data-i18n="bookTicket">
+            Book Intercity Ticket →
+          </a>
+        </div>
+      </main>
+
+      <!-- Mobile Bottom Navigation Bar -->
+      <nav class="mobile-bottom-nav">
+        <a href="passenger.html" class="bottom-nav-item active">
+          <span class="nav-icon">🏠</span>
+          <span>Home</span>
+        </a>
+        <a href="booking.html" class="bottom-nav-item">
+          <span class="nav-icon">🎫</span>
+          <span>Book</span>
+        </a>
+        <a href="tracking.html" class="bottom-nav-item">
+          <span class="nav-icon">📍</span>
+          <span>Track</span>
+        </a>
+        <a href="bookings.html" class="bottom-nav-item">
+          <span class="nav-icon">📋</span>
+          <span>Trips</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-item">
+          <span class="nav-icon">👤</span>
+          <span>Profile</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Bus Details & AI Factor Modal -->
+  <div id="bus-detail-modal" class="modal-backdrop">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">🤖 AI Arrival & Telematics</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div id="bus-detail-modal-body" class="modal-body">
+        <!-- Populated dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" data-modal-close>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/language.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/passenger.js"></script>
+</body>
+</html>

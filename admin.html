@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Admin Fleet & AI Analytics — BusTrack AI</title>
+  <meta name="theme-color" content="#07111F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BusTrack AI" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+  <canvas id="transit-bg-canvas"></canvas>
+  <div class="bg-grid-overlay"></div>
+  <div class="bg-gradient-glow"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-logo-icon">🚌</span>
+        <div>
+          <div class="sidebar-logo-text">BusTrack <span class="gradient-text-cyan">AI</span></div>
+          <span class="sidebar-role-badge">Admin Hub</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="admin.html" class="sidebar-link active">
+          <span class="nav-icon">📊</span>
+          <span>Fleet Overview</span>
+        </a>
+        <a href="#fleet-table-section" class="sidebar-link">
+          <span class="nav-icon">🚌</span>
+          <span>Bus Management</span>
+        </a>
+        <a href="#analytics-section" class="sidebar-link">
+          <span class="nav-icon">📈</span>
+          <span>AI Analytics</span>
+        </a>
+        <a href="tracking.html" class="sidebar-link">
+          <span class="nav-icon">📍</span>
+          <span>Live Tracking</span>
+        </a>
+        <a href="feedback.html" class="sidebar-link">
+          <span class="nav-icon">⭐</span>
+          <span>Feedback Log</span>
+        </a>
+        <a href="help.html" class="sidebar-link">
+          <span class="nav-icon">🆘</span>
+          <span data-i18n="helpCenter">Help Center</span>
+        </a>
+        <a href="profile.html" class="sidebar-link">
+          <span class="nav-icon">👤</span>
+          <span data-i18n="profile">Profile</span>
+        </a>
+        <a href="settings.html" class="sidebar-link">
+          <span class="nav-icon">⚙️</span>
+          <span data-i18n="settings">Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button type="button" class="btn btn-outline btn-sm logout-btn" style="width: 100%;">
+          🚪 <span data-i18n="logout">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="app-header">
+        <div class="header-left">
+          <button id="menu-toggle-btn" class="menu-toggle-btn" aria-label="Toggle Menu">☰</button>
+          <div class="header-title">
+            <span>Transport Admin & Analytics</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <select class="form-control language-selector-select" onchange="LanguageManager.setLanguage(this.value)" style="width: auto; min-height: 36px; padding: 0.25rem 1.75rem 0.25rem 0.5rem; font-size: 0.8rem;">
+            <option value="en">English</option>
+            <option value="ta">தமிழ்</option>
+            <option value="hi">हिन्दी</option>
+            <option value="te">తెలుగు</option>
+            <option value="kn">ಕನ್ನಡ</option>
+            <option value="ml">മലയാളം</option>
+          </select>
+
+          <a href="profile.html" class="user-profile-btn">
+            <div class="avatar" style="background: linear-gradient(135deg, #2563eb, #8b5cf6);">K</div>
+            <span class="current-user-name" style="font-size: 0.85rem; font-weight: 600;">Karthik Raman</span>
+          </a>
+        </div>
+      </header>
+
+      <main class="page-body">
+        <!-- Action Row -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+          <div>
+            <h2 style="font-size: 1.5rem;">Fleet Command Center</h2>
+            <p class="text-muted text-sm">Real-time telematics, schedule coordination, and AI predictive demand models.</p>
+          </div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button type="button" id="generate-admin-report-btn" class="btn btn-outline btn-sm">
+              📄 Report
+            </button>
+            <button type="button" id="add-bus-modal-btn" class="btn btn-primary btn-sm">
+              + Add Bus
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards with Animated Counters -->
+        <div class="admin-kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-title">Total Registered Fleet</span>
+            <div class="kpi-value animate-counter" data-target="1250">0</div>
+            <span class="kpi-subtitle">Buses in regional registry</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-title">Active Buses on Route</span>
+            <div class="kpi-value animate-counter" data-target="842" style="color:#34d399;">0</div>
+            <span class="kpi-subtitle">🟢 Live telematics streaming</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-title">On-Time Performance</span>
+            <div class="kpi-value animate-counter" data-target="87" data-decimal="false" style="color:#22d3ee;">0%</div>
+            <span class="kpi-subtitle">Within 5m schedule variance</span>
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-title">Average Corridor Delay</span>
+            <div class="kpi-value animate-counter" data-target="4.2" data-decimal="true" style="color:#fbbf24;">0m</div>
+            <span class="kpi-subtitle">Peak-hour offset calculation</span>
+          </div>
+        </div>
+
+        <!-- AI Insights Cards -->
+        <div class="ai-insights-grid">
+          <div class="insight-card">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span class="badge badge-ai">🤖 AI Prototype Insight</span>
+              <span class="text-muted text-xs">10m ago</span>
+            </div>
+            <h4 style="color:#fff;">Passenger Demand Surge Expected</h4>
+            <p class="text-muted text-sm">Passenger demand appears highest during morning peak hours (08:00 - 10:00) on Gandhipuram ↔ Ukkadam corridor.</p>
+            <div style="font-size:0.8rem; color:#38bdf8; border-top:1px solid var(--border-glass); padding-top:0.5rem;">
+              <strong>Suggested Action:</strong> Increase bus dispatch frequency from 15m to 8m intervals during peak periods.
+            </div>
+          </div>
+
+          <div class="insight-card">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span class="badge badge-ai">🤖 AI Prototype Insight</span>
+              <span class="text-muted text-xs">25m ago</span>
+            </div>
+            <h4 style="color:#fff;">Route 102 Repeated Delay Trend</h4>
+            <p class="text-muted text-sm">Route 102 (Singanallur) has logged +8.5m average delay across 14 consecutive trips due to road construction.</p>
+            <div style="font-size:0.8rem; color:#38bdf8; border-top:1px solid var(--border-glass); padding-top:0.5rem;">
+              <strong>Suggested Action:</strong> Review corridor detour routes and update AI schedule buffer time.
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Analytics Canvas Charts Grid -->
+        <div id="analytics-section" class="charts-grid-layout" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.25rem; margin-bottom:2rem;">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <h4 style="font-size:1.05rem;">Hourly Passenger Demand</h4>
+                <div class="text-muted text-xs">Simulated commuter volume</div>
+              </div>
+              <span class="badge badge-demo">Demo</span>
+            </div>
+            <div class="chart-canvas-box">
+              <canvas id="chart-passenger-demand"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <h4 style="font-size:1.05rem;">Average Bus Delay by Route</h4>
+                <div class="text-muted text-xs">Minutes variance from timetable</div>
+              </div>
+              <span class="badge badge-demo">Demo</span>
+            </div>
+            <div class="chart-canvas-box">
+              <canvas id="chart-delay-trends"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <h4 style="font-size:1.05rem;">Corridor On-Time (%)</h4>
+                <div class="text-muted text-xs">Schedule adherence by hub</div>
+              </div>
+              <span class="badge badge-demo">Demo</span>
+            </div>
+            <div class="chart-canvas-box">
+              <canvas id="chart-route-performance"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <h4 style="font-size:1.05rem;">Feedback Sentiment</h4>
+                <div class="text-muted text-xs">NLP review classification</div>
+              </div>
+              <span class="badge badge-demo">Demo</span>
+            </div>
+            <div class="chart-canvas-box">
+              <canvas id="chart-sentiment-donut"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bus Fleet Management CRUD Table -->
+        <div id="fleet-table-section" class="glass-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+            <div>
+              <h3 style="font-size:1.25rem;">Bus Fleet Registry</h3>
+              <p class="text-muted text-xs">Manage active buses, routes, drivers, and telematics statuses.</p>
+            </div>
+            <span class="badge badge-demo">Editable LocalStorage</span>
+          </div>
+
+          <div class="crud-table-wrapper">
+            <table class="crud-table">
+              <thead>
+                <tr>
+                  <th>Bus Number</th>
+                  <th>Category</th>
+                  <th>Corridor Route</th>
+                  <th>Driver</th>
+                  <th>Status</th>
+                  <th>AI ETA</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-bus-table-body">
+                <!-- Populated dynamically by js/admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+
+      <!-- Mobile Bottom Navigation Bar -->
+      <nav class="mobile-bottom-nav">
+        <a href="admin.html" class="bottom-nav-item active">
+          <span class="nav-icon">📊</span>
+          <span>Fleet</span>
+        </a>
+        <a href="tracking.html" class="bottom-nav-item">
+          <span class="nav-icon">📍</span>
+          <span>Map</span>
+        </a>
+        <a href="feedback.html" class="bottom-nav-item">
+          <span class="nav-icon">⭐</span>
+          <span>Reviews</span>
+        </a>
+        <a href="help.html" class="bottom-nav-item">
+          <span class="nav-icon">🆘</span>
+          <span>Help</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-item">
+          <span class="nav-icon">👤</span>
+          <span>Profile</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Add Bus Modal -->
+  <div id="add-bus-modal" class="modal-backdrop">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">+ Add New Bus to Fleet</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <form id="add-bus-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Bus Registration Number</label>
+            <input type="text" id="new-bus-number" class="form-control" placeholder="e.g. TN-38-N-9988" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Operator Category</label>
+            <select id="new-bus-type" class="form-control form-select">
+              <option value="Government">Government (TNSTC)</option>
+              <option value="Private">Private Operator</option>
+            </select>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">Starting Terminal</label>
+              <select id="new-bus-from" class="form-control form-select">
+                <option value="Gandhipuram">Gandhipuram</option>
+                <option value="Ukkadam">Ukkadam</option>
+                <option value="Singanallur">Singanallur</option>
+                <option value="Peelamedu">Peelamedu</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Destination Hub</label>
+              <select id="new-bus-to" class="form-control form-select">
+                <option value="Ukkadam">Ukkadam</option>
+                <option value="Gandhipuram">Gandhipuram</option>
+                <option value="Singanallur">Singanallur</option>
+                <option value="Peelamedu">Peelamedu</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Assigned Driver</label>
+            <input type="text" id="new-bus-driver" class="form-control" placeholder="e.g. S. Vignesh" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" data-modal-close>Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Save to Fleet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Printable Report Modal -->
+  <div id="admin-report-modal" class="modal-backdrop">
+    <div class="modal-container" style="max-width:700px;">
+      <div class="modal-header">
+        <h3 class="modal-title">📄 Fleet Performance Report</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="ticket-wrapper">
+          <div style="text-align:center; margin-bottom:1.5rem; border-bottom:2px solid #e2e8f0; padding-bottom:1rem;">
+            <h2 style="font-size:1.4rem; color:#1d4ed8;">BusTrack AI Operations Briefing</h2>
+            <div style="font-size:0.75rem; color:#64748b;">SMART PUBLIC TRANSPORTATION PERFORMANCE AUDIT</div>
+            <div class="badge badge-demo" style="margin-top:0.5rem;">Academic Prototype Simulation</div>
+          </div>
+
+          <div class="ticket-grid">
+            <div>
+              <div class="ticket-field-lbl">Report Date</div>
+              <div class="ticket-field-val">September 04, 2026</div>
+            </div>
+            <div>
+              <div class="ticket-field-lbl">Fleet Evaluated</div>
+              <div class="ticket-field-val">1,250 Registered Units</div>
+            </div>
+            <div>
+              <div class="ticket-field-lbl">On-Time Rate</div>
+              <div class="ticket-field-val">87.4% Compliance</div>
+            </div>
+            <div>
+              <div class="ticket-field-lbl">Delay Variance</div>
+              <div class="ticket-field-val">+4.2 Minutes (Peak)</div>
+            </div>
+          </div>
+
+          <div style="margin-top:1rem; font-size:0.85rem; line-height:1.5; color:#334155;">
+            <strong>Key AI Insights & Executive Summary:</strong>
+            <ul style="margin-left:1.25rem; margin-top:0.4rem;">
+              <li>Morning peak traffic on Corridor 101 shows highest demand pressure.</li>
+              <li>Government buses achieved 91% satisfaction in affordability ratings.</li>
+              <li>Recommended adding 4 auxiliary buses between 08:30 - 09:30 AM.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" data-modal-close>Close</button>
+        <button type="button" id="print-admin-report-btn" class="btn btn-secondary btn-sm">🖨️ Print Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/language.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

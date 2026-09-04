@@ -1,0 +1,73 @@
+{
+  "name": "BusTrack AI — Smart Public Transportation",
+  "short_name": "BusTrack",
+  "description": "Know Your Bus. Know Your Time. Travel Smarter. AI-powered live bus tracking, ETA predictions, Govt vs. Private comparisons, and smart ticketing.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#07111F",
+  "background_color": "#07111F",
+  "lang": "en",
+  "categories": ["transportation", "travel", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Find Buses",
+      "short_name": "Find Bus",
+      "description": "Discover city corridor buses and live ETAs",
+      "url": "./passenger.html",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Live GPS Tracking",
+      "short_name": "Live Track",
+      "description": "Real-time moving bus map and telematics",
+      "url": "./tracking.html",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Book Ticket",
+      "short_name": "Book Ticket",
+      "description": "Long-distance intercity booking & seat selection",
+      "url": "./booking.html",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Command Center",
+      "short_name": "Minister Hub",
+      "description": "State transport executive dashboard",
+      "url": "./minister.html",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

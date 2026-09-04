@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Transport Minister Command Center — BusTrack AI</title>
+  <meta name="theme-color" content="#07111F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BusTrack AI" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/minister.css" />
+</head>
+<body>
+  <canvas id="transit-bg-canvas"></canvas>
+  <div class="bg-grid-overlay"></div>
+  <div class="bg-gradient-glow"></div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-logo-icon">🏛️</span>
+        <div>
+          <div class="sidebar-logo-text">BusTrack <span class="gradient-text-cyan">AI</span></div>
+          <span class="sidebar-role-badge" style="color: #c084fc;">Ministerial Hub</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="minister.html" class="sidebar-link active">
+          <span class="nav-icon">🏛️</span>
+          <span>Command Center</span>
+        </a>
+        <a href="#regional-map-section" class="sidebar-link">
+          <span class="nav-icon">🗺️</span>
+          <span>Regional Map</span>
+        </a>
+        <a href="#state-analytics-section" class="sidebar-link">
+          <span class="nav-icon">📈</span>
+          <span>State Analytics</span>
+        </a>
+        <a href="#c29-section" class="sidebar-link">
+          <span class="nav-icon">📝</span>
+          <span>C29 Field Data</span>
+        </a>
+        <a href="tracking.html" class="sidebar-link">
+          <span class="nav-icon">📍</span>
+          <span>Live Telematics</span>
+        </a>
+        <a href="help.html" class="sidebar-link">
+          <span class="nav-icon">🆘</span>
+          <span data-i18n="helpCenter">Help Center</span>
+        </a>
+        <a href="profile.html" class="sidebar-link">
+          <span class="nav-icon">👤</span>
+          <span data-i18n="profile">Profile</span>
+        </a>
+        <a href="settings.html" class="sidebar-link">
+          <span class="nav-icon">⚙️</span>
+          <span data-i18n="settings">Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button type="button" class="btn btn-outline btn-sm logout-btn" style="width: 100%;">
+          🚪 <span data-i18n="logout">Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="app-header">
+        <div class="header-left">
+          <button id="menu-toggle-btn" class="menu-toggle-btn" aria-label="Toggle Menu">☰</button>
+          <div class="header-title">
+            <span>🏛️ Command Center</span>
+            <span class="badge badge-demo" style="margin-left: 0.5rem; display:none; @media(min-width:600px){display:inline-flex;}">Prototype</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <select class="form-control language-selector-select" onchange="LanguageManager.setLanguage(this.value)" style="width: auto; min-height: 36px; padding: 0.25rem 1.75rem 0.25rem 0.5rem; font-size: 0.8rem;">
+            <option value="en">English</option>
+            <option value="ta">தமிழ்</option>
+            <option value="hi">हिन्दी</option>
+            <option value="te">తెలుగు</option>
+            <option value="kn">ಕನ್ನಡ</option>
+            <option value="ml">മലയാളം</option>
+          </select>
+
+          <a href="profile.html" class="user-profile-btn">
+            <div class="avatar" style="background: linear-gradient(135deg, #8b5cf6, #ec4899);">M</div>
+            <span class="current-user-name" style="font-size: 0.85rem; font-weight: 600;">Hon. Minister</span>
+          </a>
+        </div>
+      </header>
+
+      <main class="page-body">
+        <!-- Hero Header -->
+        <div class="minister-hero-banner">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+            <div>
+              <div class="badge badge-simulation" style="margin-bottom:0.5rem;">State Strategic Overview</div>
+              <h1 style="font-size: 1.8rem;">Transport Command Center</h1>
+              <p class="text-muted text-sm">AI-Powered Public Transportation Intelligence & Executive Decision Support System.</p>
+            </div>
+            <div>
+              <button type="button" id="open-minister-report-btn" class="btn btn-accent btn-sm">
+                📑 Executive Briefing
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- High-Level State KPIs -->
+        <div class="minister-kpis-grid">
+          <div class="minister-kpi-card">
+            <span class="text-muted text-xs">STATE FLEET SIZE</span>
+            <div class="animate-counter" data-target="1250" style="font-size: 2rem; font-weight: 800; color: #38bdf8;">0</div>
+            <span class="text-xs text-muted">Buses Registered</span>
+          </div>
+
+          <div class="minister-kpi-card">
+            <span class="text-muted text-xs">ACTIVE ON-ROAD FLEET</span>
+            <div class="animate-counter" data-target="842" style="font-size: 2rem; font-weight: 800; color: #34d399;">0</div>
+            <span class="text-xs text-muted">Live Active Units</span>
+          </div>
+
+          <div class="minister-kpi-card">
+            <span class="text-muted text-xs">INTERCONNECTED ROUTES</span>
+            <div class="animate-counter" data-target="126" style="font-size: 2rem; font-weight: 800; color: #a78bfa;">0</div>
+            <span class="text-xs text-muted">Active Corridors</span>
+          </div>
+
+          <div class="minister-kpi-card">
+            <span class="text-muted text-xs">DAILY COMMUTERS</span>
+            <div class="animate-counter" data-target="34200" style="font-size: 2rem; font-weight: 800; color: #fbbf24;">0</div>
+            <span class="text-xs text-muted">Passengers / Day</span>
+          </div>
+
+          <div class="minister-kpi-card">
+            <span class="text-muted text-xs">ON-TIME PERFORMANCE</span>
+            <div class="animate-counter" data-target="87" style="font-size: 2rem; font-weight: 800; color: #22d3ee;">0%</div>
+            <span class="text-xs text-muted">Punctuality Score</span>
+          </div>
+
+          <div class="minister-kpi-card">
+            <span class="text-muted text-xs">PUBLIC SATISFACTION</span>
+            <div class="animate-counter" data-target="4.4" data-decimal="true" style="font-size: 2rem; font-weight: 800; color: #4ade80;">0.0</div>
+            <span class="text-xs text-muted">⭐ Average Rating</span>
+          </div>
+        </div>
+
+        <!-- Interactive Regional Transport Map Section -->
+        <div id="regional-map-section" class="regional-map-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+            <div>
+              <h3 style="font-size: 1.25rem;">🗺️ Regional State Transport Network Map</h3>
+              <p class="text-muted text-xs">Click on any region node (Region A, B, C, D) to inspect live regional telemetry.</p>
+            </div>
+            <span class="badge badge-demo">Interactive Simulation</span>
+          </div>
+
+          <div class="regional-map-canvas-box">
+            <canvas id="regional-map-canvas"></canvas>
+
+            <!-- Dynamic Telemetry Overlay for clicked region -->
+            <div id="region-detail-overlay" class="region-detail-overlay">
+              <div style="font-size: 0.75rem; color: var(--secondary); font-weight: 700; text-transform: uppercase;">Selected Region</div>
+              <h4 id="region-name" style="font-size: 1rem; margin-bottom: 0.4rem;">Region A: Coimbatore Hub</h4>
+              <div style="font-size: 0.825rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                <div style="display:flex; justify-content:space-between;">
+                  <span class="text-muted">Active Buses:</span> <strong id="region-buses">320 Units</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span class="text-muted">Passenger Demand:</span> <strong id="region-demand" style="color:#38bdf8;">High</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span class="text-muted">Avg Delay:</span> <strong id="region-delay" style="color:#fbbf24;">+3.8m</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span class="text-muted">Rating:</span> <strong id="region-rating" style="color:#34d399;">4.4★</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- State AI Analytics Charts Grid -->
+        <div id="state-analytics-section" class="charts-grid-layout" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:1.25rem; margin-bottom:2rem;">
+          <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <div>
+                <h4 style="font-size: 1.05rem;">State Commuter Flow</h4>
+                <div class="text-muted text-xs">Daily passenger volume</div>
+              </div>
+              <span class="badge badge-demo">Demo</span>
+            </div>
+            <div style="width:100%; height:230px;"><canvas id="chart-minister-flow"></canvas></div>
+          </div>
+
+          <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <div>
+                <h4 style="font-size: 1.05rem;">Govt vs Private Share</h4>
+                <div class="text-muted text-xs">Fleet deployment</div>
+              </div>
+              <span class="badge badge-demo">Demo</span>
+            </div>
+            <div style="width:100%; height:230px;"><canvas id="chart-minister-fleet-split"></canvas></div>
+          </div>
+
+          <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <div>
+                <h4 style="font-size: 1.05rem;">Intercity Demand</h4>
+                <div class="text-muted text-xs">High-demand corridors</div>
+              </div>
+              <span class="badge badge-demo">Demo</span>
+            </div>
+            <div style="width:100%; height:230px;"><canvas id="chart-minister-routes"></canvas></div>
+          </div>
+
+          <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <div>
+                <h4 style="font-size: 1.05rem;">Satisfaction Factors</h4>
+                <div class="text-muted text-xs">Passenger feedback parameters</div>
+              </div>
+              <span class="badge badge-demo">Demo</span>
+            </div>
+            <div style="width:100%; height:230px;"><canvas id="chart-minister-satisfaction"></canvas></div>
+          </div>
+        </div>
+
+        <!-- C29 Field Observation Section -->
+        <div id="c29-section" class="c29-observation-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; flex-wrap:wrap; gap:0.5rem;">
+            <div>
+              <span class="badge badge-demo" style="margin-bottom:0.4rem;">Academic Field Study (C29)</span>
+              <h3 style="font-size: 1.25rem;">Real-World Field Study Observation Data</h3>
+              <p class="text-muted text-sm">To preserve academic integrity, enter your actual field observations recorded at the bus transport hub.</p>
+            </div>
+            <button type="button" id="save-c29-data-btn" class="btn btn-secondary btn-sm">
+              💾 Save Field Data
+            </button>
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
+            <div>
+              <label class="form-label">Observed Waiting Time</label>
+              <input type="text" id="c29-waiting-time" class="field-data-input" placeholder="e.g. 22 Minutes (Peak)" />
+            </div>
+
+            <div>
+              <label class="form-label">Observed Passenger Count</label>
+              <input type="text" id="c29-passenger-count" class="field-data-input" placeholder="e.g. 140 Commuters" />
+            </div>
+
+            <div>
+              <label class="form-label">Observed Bus Frequency</label>
+              <input type="text" id="c29-frequency" class="field-data-input" placeholder="e.g. 4 Buses / Hour" />
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Mobile Bottom Navigation Bar -->
+      <nav class="mobile-bottom-nav">
+        <a href="minister.html" class="bottom-nav-item active">
+          <span class="nav-icon">🏛️</span>
+          <span>Command</span>
+        </a>
+        <a href="tracking.html" class="bottom-nav-item">
+          <span class="nav-icon">📍</span>
+          <span>Map</span>
+        </a>
+        <a href="#c29-section" class="bottom-nav-item">
+          <span class="nav-icon">📝</span>
+          <span>C29 Data</span>
+        </a>
+        <a href="help.html" class="bottom-nav-item">
+          <span class="nav-icon">🆘</span>
+          <span>Help</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-item">
+          <span class="nav-icon">👤</span>
+          <span>Profile</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Ministerial Executive Briefing Report Modal -->
+  <div id="minister-report-modal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 760px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🏛️ Executive State Transport Intelligence Report</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="ticket-wrapper">
+          <div style="text-align:center; border-bottom:2px solid #e2e8f0; padding-bottom:1.25rem; margin-bottom:1.5rem;">
+            <h2 style="font-size:1.5rem; color:#1d4ed8;">Government of Tamil Nadu — Transport Directorate</h2>
+            <div style="font-size:0.8rem; color:#64748b;">AI-POWERED PUBLIC MOBILITY BRIEFING • EXECUTIVE AUDIT</div>
+            <div class="badge badge-demo" style="margin-top:0.5rem;">Prototype Demonstration Data</div>
+          </div>
+
+          <div class="ticket-grid">
+            <div>
+              <div class="ticket-field-lbl">State Fleet Capacity</div>
+              <div class="ticket-field-val">1,250 Registered / 842 Active Units</div>
+            </div>
+            <div>
+              <div class="ticket-field-lbl">State On-Time Compliance</div>
+              <div class="ticket-field-val">87.4% Network Compliance</div>
+            </div>
+            <div>
+              <div class="ticket-field-lbl">Daily Trips Served</div>
+              <div class="ticket-field-val">34,200 Passengers</div>
+            </div>
+            <div>
+              <div class="ticket-field-lbl">Public Satisfaction Index</div>
+              <div class="ticket-field-val">4.4 / 5.0 (High Acceptance)</div>
+            </div>
+          </div>
+
+          <div style="margin-top:1.25rem; font-size:0.875rem; line-height:1.6; color:#334155;">
+            <h4 style="color:#0f172a; margin-bottom:0.4rem;">Strategic AI Recommendations:</h4>
+            <ul style="margin-left:1.25rem;">
+              <li><strong>Peak Capacity Expansion:</strong> Implement dynamic scheduling to deploy 12 additional government feeder buses during morning peak hours (08:00–10:00).</li>
+              <li><strong>Corridor Delay Mitigation:</strong> Re-route 15% of non-stop services via arterial ring roads to reduce central bottleneck delays by an estimated 6.2 minutes.</li>
+              <li><strong>Responsible AI Safeguards:</strong> Continue mandatory human operator review on automated route adjustments before physical bus dispatch.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" data-modal-close>Close</button>
+        <button type="button" id="print-minister-report-btn" class="btn btn-accent btn-sm">🖨️ Print Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/language.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/minister.js"></script>
+</body>
+</html>
